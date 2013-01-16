@@ -89,7 +89,7 @@ public:
 		//sd->sendIOPortData();
 		while (IsOperatorControl())
 		{
-			myRobot.ArcadeDrive(stick1);
+			myRobot.TankDrive(stick1, stick2);
 			SmartDashboard::PutNumber("demo",1);
 			GetWatchdog().Feed();
 		}
