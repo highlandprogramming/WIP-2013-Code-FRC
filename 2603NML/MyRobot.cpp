@@ -15,7 +15,7 @@
 class RobotDemo : public SimpleRobot
 {
 	//Declare-----------
-	SmartDashboard *sd;
+	//SmartDashboard *sd;
 	RobotDrive myRobot;
 	Joystick *stick1;
 	Joystick *stick2;
@@ -39,7 +39,7 @@ public:
 		s[5] = new Solenoid(6);
 		s[6] = new Solenoid(7);
 		s[7] = new Solenoid(8);
-		sd->init();
+		SmartDashboard::init();
 		myRobot.SetExpiration(0.1);
 	}
 	
@@ -90,7 +90,7 @@ public:
 		while (IsOperatorControl())
 		{
 			myRobot.ArcadeDrive(stick1);
-			sd->PutNumber("demo",1);
+			SmartDashboard::PutNumber("demo",1);
 			GetWatchdog().Feed();
 		}
 	}
