@@ -17,6 +17,8 @@ class RobotDemo : public SimpleRobot
 	//Declare-----------
 	//SmartDashboard *sd;
 	RobotDrive myRobot;
+	Victor myShooter1;
+	Victor myShooter2;
 	Joystick *stick1;
 	Joystick *stick2;
 	Compressor *compressor;
@@ -25,7 +27,9 @@ class RobotDemo : public SimpleRobot
 	
 public:
 	RobotDemo(void):
-		myRobot(1,3,2,4)			
+		myRobot(1,3,2,4),
+		myShooter1(7),
+		myShooter2(8)
 	{
 		//Init-----------
 		stick1 = new Joystick(1);
@@ -84,13 +88,36 @@ public:
 		compressor->Start();
 		myRobot.SetSafetyEnabled(true);
 		GetWatchdog().SetEnabled(true);
-		GetWatchdog().SetExpiration(8);
+		GetWatchdog().SetExpiration(1);
 		GetWatchdog().Feed();
 		//sd->sendIOPortData();
+
+		// Local variables.
+		bool blnFire;
+		
 		while (IsOperatorControl())
 		{
 			myRobot.ArcadeDrive(stick1);
 			SmartDashboard::PutNumber("demo",1);
+			GetWatchdog().Feed();
+			if(stick1->GetTrigger() && blnFire == false)
+			{
+				myShooter1.Set(-1);
+				myShooter2.Set(-1);
+				blnFire = true;
+				GetWatchdog().Feed();
+				Wait(0.5);
+				GetWatchdog().Feed();
+			}
+			else if(stick1->GetTrigger() && blnFire == true)
+			{
+				myShooter1.Set(-1);
+				myShooter2.Set(-1);
+				blnFire = false;
+				GetWatchdog().Feed();
+				Wait(0.5);
+				GetWatchdog().Feed();
+			}
 			GetWatchdog().Feed();
 		}
 	}
