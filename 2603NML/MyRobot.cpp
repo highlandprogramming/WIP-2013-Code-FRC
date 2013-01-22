@@ -86,6 +86,7 @@ public:
 
 	void OperatorControl(void)
 	{
+		compressor->Enabled();
 		compressor->Start();
 		myRobot.SetSafetyEnabled(true);
 		GetWatchdog().SetEnabled(true);
@@ -106,7 +107,10 @@ public:
 		while (IsOperatorControl())
 		{
 			myRobot.ArcadeDrive(stick1);
-			SmartDashboard::PutNumber("demo",2);
+			//float fltPressureSwitch = m_pressureSwitch;
+			//float fltRelay = m_relay;
+			SmartDashboard::PutNumber("Demo",3);
+			
 			GetWatchdog().Feed();
 			if(stick1->GetTrigger() && blnFire == false)
 			{
@@ -124,6 +128,7 @@ public:
 				blnFire = false;
 				GetWatchdog().Feed();
 				Wait(0.5);
+				
 				GetWatchdog().Feed();
 			}
 			GetWatchdog().Feed();
