@@ -78,9 +78,10 @@ public:
 		GetWatchdog().SetExpiration(10);
 		GetWatchdog().Feed();
 		myRobot.SetSafetyEnabled(false);
-		myRobot.Drive(0.5, 0.0); 	
+		/*myRobot.Drive(0.5, 0.0); 	
 		Wait(2.0); 				
 		myRobot.Drive(0.0, 0.0); 	
+		*/
 	}
 
 	void OperatorControl(void)
@@ -118,8 +119,8 @@ public:
 			}
 			else if(stick1->GetTrigger() && blnFire == true)
 			{
-				myShooter1.Set(-1);
-				myShooter2.Set(-1);
+				myShooter1.Set(0);
+				myShooter2.Set(0);
 				blnFire = false;
 				GetWatchdog().Feed();
 				Wait(0.5);
