@@ -1,0 +1,33 @@
+autonomous
+{
+			//dsLCD->Clear();
+		//dsLCD->Printf(DriverStationLCD::kUser_Line4, 1, "line4");
+		
+		
+		if(blnCanTurnAround)
+		{
+			
+				/*s[6]->Set(false);
+				s[7]->Set(true); 
+				TurnTimer.Reset();
+				while(TurnTimer.Get() < 4)
+				{
+					GetWatchdog().Feed();
+					myRobot.Drive(1, 0.5);
+				}
+				s[6]->Set(true);
+				s[7]->Set(false);
+				TurnTimer.Reset();
+				while(TurnTimer.Get() < 1)
+				{
+					GetWatchdog().Feed();
+					myRobot.Drive(1,0);
+				}*/
+				/*//bool blnTurnAround(float Starting, float Current);
+				float StartingAngle = myGyro->GetAngle();
+				while(!blnTurnAround(StartingAngle, myGyro->GetAngle()))
+				{
+					myRobot.Drive(1, 1);
+				}*/
+			}
+}
