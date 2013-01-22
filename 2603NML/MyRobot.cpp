@@ -90,6 +90,13 @@ public:
 		GetWatchdog().SetEnabled(true);
 		GetWatchdog().SetExpiration(1);
 		GetWatchdog().Feed();
+		AxisCamera &camera = AxisCamera::GetInstance("10.26.3.11");
+		camera.WriteResolution(AxisCamera::kResolution_320x240);
+		camera.WriteCompression(20);
+		camera.WriteBrightness(50);
+		
+		GetWatchdog().Feed();
+		
 		//sd->sendIOPortData();
 
 		// Local variables.
@@ -98,7 +105,7 @@ public:
 		while (IsOperatorControl())
 		{
 			myRobot.ArcadeDrive(stick1);
-			SmartDashboard::PutNumber("demo",1);
+			SmartDashboard::PutNumber("demo",2);
 			GetWatchdog().Feed();
 			if(stick1->GetTrigger() && blnFire == false)
 			{
