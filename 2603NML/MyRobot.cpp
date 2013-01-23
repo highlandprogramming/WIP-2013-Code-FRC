@@ -102,7 +102,7 @@ public:
 		//sd->sendIOPortData();
 
 		// Local variables.
-		bool blnFire;
+		bool blnFire, blnpiston;
 		
 		while (IsOperatorControl())
 		{
@@ -112,7 +112,17 @@ public:
 			SmartDashboard::PutNumber("Demo",3);
 			
 			GetWatchdog().Feed();
-			if(stick1->GetTrigger() && blnFire == false)
+			if(stick1->GetTrigger() && blnpiston == false)
+			{
+				s[0]->Set(true);
+				Wait(.5);
+				GetWatchdog().Feed();
+				Wait(.5);
+				GetWatchdog().Feed();
+				s[0]->Set(false);
+			}
+			
+			if(stick2->GetTrigger() && blnFire == false)
 			{
 				myShooter1.Set(-1);
 				myShooter2.Set(-1);
@@ -121,7 +131,7 @@ public:
 				Wait(0.5);
 				GetWatchdog().Feed();
 			}
-			else if(stick1->GetTrigger() && blnFire == true)
+			else if(stick2->GetTrigger() && blnFire == true)
 			{
 				myShooter1.Set(0);
 				myShooter2.Set(0);
