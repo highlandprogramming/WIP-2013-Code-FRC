@@ -120,15 +120,15 @@ public:
 	{
 		compressor->Start();
 		GetWatchdog().SetEnabled(false);
-		GetWatchdog().SetExpiration(10);
-		GetWatchdog().Feed();
+		//GetWatchdog().SetExpiration(10);
+		//GetWatchdog().Feed();
 		myRobot.SetSafetyEnabled(false);
 		/*myRobot.Drive(0.5, 0.0); 	
 		Wait(2.0); 				
 		myRobot.Drive(0.0, 0.0); 	
 		*/
 		
-		int x = 0;
+		//int x = 0;
 		
 		
 		
@@ -145,30 +145,50 @@ public:
 		             * sample will either get images from the camera or from an image file stored in the top
 		             * level directory in the flash memory on the cRIO. The file name in this case is "testImage.jpg"
 		             */
-			if(x == 0)
-			{
+			SmartDashboard::PutNumber("Test", 1);
+			//if(0 == 0)
+			//{
+
+			SmartDashboard::PutNumber("Test", 2);
 			AxisCamera &camera = AxisCamera::GetInstance("10.26.3.11");
 			camera.WriteResolution(AxisCamera::kResolution_320x240);
 			camera.WriteCompression(20);
 			camera.WriteBrightness(50);
 			
+
+			SmartDashboard::PutNumber("Test", 3);
+			
 			ColorImage *image;
-			//image = new RGBImage("/testImage.jpg");		// get the sample image from the cRIO flash
+			//image = new RGBImage("/HybridLine_DoubleGreenBK3.jpg");		// get the sample image from the cRIO flash
 			image = camera.GetImage();
 					//camera.GetImage(image);				//To get the images from the camera comment the line above and uncomment this one
+			image->Write("/image.bmp");
+			
+			SmartDashboard::PutNumber("Test", 4);
 			BinaryImage *thresholdImage = image->ThresholdHSV(threshold);	// get just the green target pixels
-					//thresholdImage->Write("/threshold.bmp");
-			BinaryImage *convexHullImage = thresholdImage->ConvexHull(false);  // fill in partial and full rectangles
-					//convexHullImage->Write("/ConvexHull.bmp");
-			BinaryImage *filteredImage = convexHullImage->ParticleFilter(criteria, 1);	//Remove small particles
-					//filteredImage->Write("Filtered.bmp");
+					thresholdImage->Write("/threshold.bmp");
 
+			SmartDashboard::PutNumber("Test", 5);
+			BinaryImage *convexHullImage = thresholdImage->ConvexHull(false);  // fill in partial and full rectangles
+					convexHullImage->Write("/ConvexHull.bmp");
+
+			SmartDashboard::PutNumber("Test", 6);
+			BinaryImage *filteredImage = convexHullImage->ParticleFilter(criteria, 1);	//Remove small particles
+					filteredImage->Write("/Filtered.bmp");
+
+			SmartDashboard::PutNumber("Test", 7);
 			vector<ParticleAnalysisReport> *reports = filteredImage->GetOrderedParticleAnalysisReports();  //get a particle analysis report for each particle
+
+			SmartDashboard::PutNumber("Test", 8);
 			scores = new Scores[reports->size()];
 					
+
+			SmartDashboard::PutNumber("Test", 9);
 					//Iterate through each particle, scoring it and determining whether it is a target or not
-			for (unsigned i = 0; i < reports->size(); i++)
+			for (unsigned i = 0; i < /*reports->size()*/2; i++)
 			{
+
+				SmartDashboard::PutNumber("Test", 10);
 				ParticleAnalysisReport *report = &(reports->at(i));
 						
 				scores[i].rectangularity = scoreRectangularity(report);
@@ -219,8 +239,8 @@ public:
 					//delete allocated reports and Scores objects also
 			delete scores;
 			delete reports;
-				}
-			x++;
+				//}
+			//x++;
 		}
 		
 	}
@@ -234,6 +254,8 @@ public:
 		GetWatchdog().SetExpiration(1);
 		GetWatchdog().Feed();
 		
+		// Set robot in low gear by default.
+		s[0]->Set(false);
 		GetWatchdog().Feed();
 		
 		//sd->sendIOPortData();
@@ -253,14 +275,17 @@ public:
 			{
 				GetWatchdog().Feed();
 				s[0]->Set(true);
-				SmartDashboard::PutBoolean("Piston Out",true);
+				SmartDashboard::PutBoolean("High Gear",true);
+				SmartDashboard::PutBoolean("Low Gear",true);
 				Wait(.5);
 				GetWatchdog().Feed();
 				Wait(.5);
 				GetWatchdog().Feed();
 				s[0]->Set(false);
-				SmartDashboard::PutBoolean("Piston Out",false);
+				SmartDashboard::PutBoolean("High Gear",false);
+				SmartDashboard::PutBoolean("High Gear",true);
 			}
+			
 			
 			if(stick2->GetTrigger() && blnFire == false)
 			{
