@@ -68,6 +68,7 @@ class RobotDemo : public SimpleRobot
 	PIDOutput *pidOutput;
 	Scores *scores;
 //	char particle[];
+	bool blnShift;
 	
 	
 public:
@@ -114,10 +115,13 @@ public:
 		DriverStationLCD *dsLCD = DriverStationLCD::GetInstance();
 		dsLCD->Clear();
 		dsLCD->UpdateLCD();
-	}
+		blnShift = true;
+		}
 
 	void Autonomous(void)
 	{
+		s[0]->Set(true);
+		s[1]->Set(true);
 		compressor->Start();
 		GetWatchdog().SetEnabled(false);
 		//GetWatchdog().SetExpiration(10);
@@ -131,8 +135,10 @@ public:
 		//int x = 0;
 		
 		
+		//Their threshold values suck DDDD, from the NIvision assistant will be below.
+		//Threshold threshold(60, 100, 90, 255, 20, 255);	//HSV threshold criteria, ranges are in that order ie. Hue is 60-100
+		Threshold threshold(100, 255, 230, 255, 140, 255); //New threshold values
 		
-		Threshold threshold(60, 100, 90, 255, 20, 255);	//HSV threshold criteria, ranges are in that order ie. Hue is 60-100
 		ParticleFilterCriteria2 criteria[] = {
 				{IMAQ_MT_AREA, AREA_MINIMUM, 65535, false, false}
 		};												//Particle filter criteria, used to filter out small particles
@@ -145,18 +151,18 @@ public:
 		             * sample will either get images from the camera or from an image file stored in the top
 		             * level directory in the flash memory on the cRIO. The file name in this case is "testImage.jpg"
 		             */
-			SmartDashboard::PutNumber("Test", 1);
+			//SmartDashboard::PutNumber("Test", 1);
 			//if(0 == 0)
 			//{
 
-			SmartDashboard::PutNumber("Test", 2);
+			//SmartDashboard::PutNumber("Test", 2);
 			AxisCamera &camera = AxisCamera::GetInstance("10.26.3.11");
 			camera.WriteResolution(AxisCamera::kResolution_320x240);
 			camera.WriteCompression(20);
 			camera.WriteBrightness(50);
 			
 
-			SmartDashboard::PutNumber("Test", 3);
+			//SmartDashboard::PutNumber("Test", 3);
 			
 			ColorImage *image;
 			//image = new RGBImage("/HybridLine_DoubleGreenBK3.jpg");		// get the sample image from the cRIO flash
@@ -164,31 +170,31 @@ public:
 					//camera.GetImage(image);				//To get the images from the camera comment the line above and uncomment this one
 			image->Write("/image.bmp");
 			
-			SmartDashboard::PutNumber("Test", 4);
+			//SmartDashboard::PutNumber("Test", 4);
 			BinaryImage *thresholdImage = image->ThresholdHSV(threshold);	// get just the green target pixels
 					thresholdImage->Write("/threshold.bmp");
 
-			SmartDashboard::PutNumber("Test", 5);
+			//SmartDashboard::PutNumber("Test", 5);
 			BinaryImage *convexHullImage = thresholdImage->ConvexHull(false);  // fill in partial and full rectangles
 					convexHullImage->Write("/ConvexHull.bmp");
 
-			SmartDashboard::PutNumber("Test", 6);
+			//SmartDashboard::PutNumber("Test", 6);
 			BinaryImage *filteredImage = convexHullImage->ParticleFilter(criteria, 1);	//Remove small particles
 					filteredImage->Write("/Filtered.bmp");
 
-			SmartDashboard::PutNumber("Test", 7);
+			//SmartDashboard::PutNumber("Test", 7);
 			vector<ParticleAnalysisReport> *reports = filteredImage->GetOrderedParticleAnalysisReports();  //get a particle analysis report for each particle
 
-			SmartDashboard::PutNumber("Test", 8);
+			//SmartDashboard::PutNumber("Test", 8);
 			scores = new Scores[reports->size()];
 					
 
-			SmartDashboard::PutNumber("Test", 9);
+			//SmartDashboard::PutNumber("Test", 9);
 					//Iterate through each particle, scoring it and determining whether it is a target or not
-			for (unsigned i = 0; i < /*reports->size()*/2; i++)
+			for (unsigned i = 0; i < reports->size(); i++)
 			{
 
-				SmartDashboard::PutNumber("Test", 10);
+				//SmartDashboard::PutNumber("Test", 10);
 				ParticleAnalysisReport *report = &(reports->at(i));
 						
 				scores[i].rectangularity = scoreRectangularity(report);
@@ -199,19 +205,21 @@ public:
 						
 				if(scoreCompare(scores[i], false))
 				{
-					
+					//We hit this!! Note to self: changethe below printf statement
+					//To use SmartDashboard::PutString so wecan seevalues.
 					printf("particle: %d  is a High Goal  centerX: %f  centerY: %f \n", i, report->center_mass_x_normalized, report->center_mass_y_normalized);
 					//string particle = ("particle: %d  is a High Goal  centerX: %f  centerY: %f \n", i, report->center_mass_x_normalized, report->center_mass_y_normalized);
 					SmartDashboard::PutNumber("CenterX", report->center_mass_x);
 					SmartDashboard::PutNumber("CenterY", report->center_mass_y);
-					printf("Distance: %f \n", computeDistance(thresholdImage, report, false));
 					SmartDashboard::PutNumber("Distance",computeDistance(thresholdImage,report, false));
+					//SmartDashboard::PutNumber("Test",computeDistance(thresholdImage, report, false));
+					//SmartDashboard::PutNumber("Distance",computeDistance(thresholdImage,report, false));
 				} 
 				
 				else if (scoreCompare(scores[i], true))
 				{
 					printf("particle: %d  is a Middle Goal  centerX: %f  centerY: %f \n", i, report->center_mass_x_normalized, report->center_mass_y_normalized);
-					printf("Distance: %f \n", computeDistance(thresholdImage, report, true));
+					SmartDashboard::PutNumber("Test", computeDistance(thresholdImage, report, true));
 					SmartDashboard::PutNumber("CenterX", report->center_mass_x);
 					SmartDashboard::PutNumber("CenterY", report->center_mass_y);
 					SmartDashboard::PutNumber("Distance",computeDistance(thresholdImage,report, false));
@@ -261,31 +269,42 @@ public:
 		//sd->sendIOPortData();
 
 		// Local variables.
-		bool blnFire, blnPiston;
+		bool blnFire,/* blnPiston*/;
+		
+		blnShift = true;
 		
 		while (IsOperatorControl())
 		{
 			myRobot.ArcadeDrive(stick1);
+			SmartDashboard::PutNumber("Throttle",(stick1->GetY())*10);
+			SmartDashboard::PutNumber("Steering",(stick1->GetX())*10);
 			//float fltPressureSwitch = m_pressureSwitch;
 			//float fltRelay = m_relay;
-			SmartDashboard::PutNumber("Demo",3);
+			//SmartDashboard::PutNumber("Demo",3);
 			
 			GetWatchdog().Feed();
-			if(stick1->GetTrigger())
+			if(stick1->GetTrigger() && blnShift == true)
+			{
+				GetWatchdog().Feed();
+				s[0]->Set(false);
+				s[1]->Set(false);
+				SmartDashboard::PutBoolean("High Gear",false);
+				SmartDashboard::PutBoolean("Low Gear",true);
+				blnShift = false;
+				Wait(.5);
+				GetWatchdog().Feed();
+			}
+			if(stick1->GetTrigger() && blnShift == false)
 			{
 				GetWatchdog().Feed();
 				s[0]->Set(true);
+				s[1]->Set(true);
 				SmartDashboard::PutBoolean("High Gear",true);
-				SmartDashboard::PutBoolean("Low Gear",true);
+				SmartDashboard::PutBoolean("Low Gear",false);
+				blnShift = true;
 				Wait(.5);
 				GetWatchdog().Feed();
-				Wait(.5);
-				GetWatchdog().Feed();
-				s[0]->Set(false);
-				SmartDashboard::PutBoolean("High Gear",false);
-				SmartDashboard::PutBoolean("High Gear",true);
 			}
-			
 			
 			if(stick2->GetTrigger() && blnFire == false)
 			{
