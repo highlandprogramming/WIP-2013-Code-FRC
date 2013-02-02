@@ -14,11 +14,11 @@
 //#include "Target.h"
 //#include "BinaryImage.h"
 //#include "VisionAPI.h"
-
+// #@$%#@$^%^@$%^!#$%#$^@$%&&$%$^!$#%#@$% http://www.chiefdelphi.com/forums/showthread.php?t=101624 is the forum page
 //Camera constants used for distance calculation
 #define X_IMAGE_RES 320		//X Image resolution in pixels, should be 160, 320 or 640
-#define VIEW_ANGLE 48		//Axis 206 camera
-//#define VIEW_ANGLE 43.5  //Axis M1011 camera
+//#define VIEW_ANGLE 48		//Axis 206 camera
+#define VIEW_ANGLE 43.5  //Axis M1011 camera
 #define PI 3.141592653
 
 //Score limits used for target identification
@@ -63,6 +63,7 @@ class RobotDemo : public SimpleRobot
 	Victor myShooter2;
 	Joystick *stick1;
 	Joystick *stick2;
+	Joystick *x360;
 	Compressor *compressor;
 	Solenoid *s[8];
 	PIDOutput *pidOutput;
@@ -80,6 +81,7 @@ public:
 		//Init-----------
 		stick1 = new Joystick(1);
 		stick2 = new Joystick(2);
+		x360 = new Joystick(3);
 		compressor = new Compressor(1,1);
 		s[0] = new Solenoid(1);
 		s[1] = new Solenoid(2);
@@ -122,6 +124,7 @@ public:
 	{
 		s[0]->Set(true);
 		s[1]->Set(true);
+		SmartDashboard::PutString("Gear","High");
 		compressor->Start();
 		GetWatchdog().SetEnabled(false);
 		//GetWatchdog().SetExpiration(10);
@@ -137,7 +140,8 @@ public:
 		
 		//Their threshold values suck DDDD, from the NIvision assistant will be below.
 		//Threshold threshold(60, 100, 90, 255, 20, 255);	//HSV threshold criteria, ranges are in that order ie. Hue is 60-100
-		Threshold threshold(100, 255, 230, 255, 140, 255); //New threshold values
+		//Threshold threshold(100, 255, 230, 255, 140, 255); //New threshold values
+		Threshold threshold(0, 255, 23, 255, 241, 255);
 		
 		ParticleFilterCriteria2 criteria[] = {
 				{IMAQ_MT_AREA, AREA_MINIMUM, 65535, false, false}
@@ -186,7 +190,8 @@ public:
 			vector<ParticleAnalysisReport> *reports = filteredImage->GetOrderedParticleAnalysisReports();  //get a particle analysis report for each particle
 
 			//SmartDashboard::PutNumber("Test", 8);
-			scores = new Scores[reports->size()];
+			int size = reports->size();
+			scores = new Scores[size];
 					
 
 			//SmartDashboard::PutNumber("Test", 9);
@@ -269,15 +274,38 @@ public:
 		//sd->sendIOPortData();
 
 		// Local variables.
-		bool blnFire,/* blnPiston*/;
+		bool blnFire/*, blnPiston*/;
+		float fltStick1X, fltStick1Y;
+		
+		Timer SafetyTimer;
 		
 		blnShift = true;
 		
 		while (IsOperatorControl())
 		{
-			myRobot.ArcadeDrive(stick1);
-			SmartDashboard::PutNumber("Throttle",(stick1->GetY())*10);
-			SmartDashboard::PutNumber("Steering",(stick1->GetX())*10);
+			//double dblCtrl = SmartDashboard::GetNumber("Controller");
+			
+			//SmartDashboard::PutNumber("Test",dblCtrl);
+			//if(dblCtrl < 1)
+			//{
+				myRobot.TankDrive(x360->GetRawAxis(2),x360->GetRawAxis(4));
+
+				fltStick1Y = (x360->GetRawAxis(2))*(-100);
+				fltStick1X = (x360->GetRawAxis(4))*(-100);
+			//}
+
+			/*
+			else
+			{
+				myRobot.ArcadeDrive(stick1);
+
+				fltStick1Y = (stick1->GetY())*(-100);
+				fltStick1X = (stick1->GetX())*(100);
+			}
+			*/
+			
+			SmartDashboard::PutNumber("Throttle (%)",fltStick1Y);
+			SmartDashboard::PutNumber("Steering (%)",fltStick1X);
 			//float fltPressureSwitch = m_pressureSwitch;
 			//float fltRelay = m_relay;
 			//SmartDashboard::PutNumber("Demo",3);
@@ -285,41 +313,46 @@ public:
 			GetWatchdog().Feed();
 			if(stick1->GetTrigger() && blnShift == true)
 			{
+				//SafetyTimer.Reset();
+				//SafetyTimer.Start();
 				GetWatchdog().Feed();
 				s[0]->Set(false);
 				s[1]->Set(false);
-				SmartDashboard::PutBoolean("High Gear",false);
-				SmartDashboard::PutBoolean("Low Gear",true);
+				SmartDashboard::PutString("Gear","Low");
 				blnShift = false;
 				Wait(.5);
+				
 				GetWatchdog().Feed();
 			}
-			if(stick1->GetTrigger() && blnShift == false)
+			else if(stick1->GetTrigger() && blnShift == false)
 			{
 				GetWatchdog().Feed();
 				s[0]->Set(true);
 				s[1]->Set(true);
-				SmartDashboard::PutBoolean("High Gear",true);
-				SmartDashboard::PutBoolean("Low Gear",false);
+				SmartDashboard::PutString("Gear","High");
 				blnShift = true;
 				Wait(.5);
 				GetWatchdog().Feed();
 			}
 			
-			if(stick2->GetTrigger() && blnFire == false)
+			if(stick2->GetRawButton(2) && blnFire == false)
 			{
 				myShooter1.Set(-1);
 				myShooter2.Set(-1);
+				SmartDashboard::PutString("Shooter","On");
+				SmartDashboard::PutNumber("Shooter Speed (%)",100);
 				blnFire = true;
 				GetWatchdog().Feed();
 				Wait(0.5);
 				GetWatchdog().Feed();
 			}
-			else if(stick2->GetTrigger() && blnFire == true)
+			else if(stick2->GetRawButton(2) && blnFire == true)
 			{
 				myShooter1.Set(0);
 				myShooter2.Set(0);
 				blnFire = false;
+				SmartDashboard::PutString("Shooter","Off");
+				SmartDashboard::PutNumber("Shooter Speed (%)",0);
 				GetWatchdog().Feed();
 				Wait(0.5);
 				
