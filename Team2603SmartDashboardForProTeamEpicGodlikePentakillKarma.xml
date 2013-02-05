@@ -1,0 +1,53 @@
+<xml version="1.0">
+<dashboard>
+	<static-widget class="edu.wpi.first.smartdashboard.gui.elements.Label">
+		<location x="490" y="221"/>
+		<property name="Text" value="WARNING: Camera has 0.5 second delay!"/>
+	</static-widget>
+	<widget field="Throttle (%)" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="518" y="27"/>
+	</widget>
+	<widget field="Steering (%)" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="517" y="3"/>
+	</widget>
+	<widget field="Shooter Speed (%)" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="4" y="3"/>
+	</widget>
+	<widget field="Shooter" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="58" y="27"/>
+	</widget>
+	<widget field="Gear" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="555" y="53"/>
+	</widget>
+	<widget field="Distance" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="277" y="45"/>
+	</widget>
+	<widget field="CenterY" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="279" y="22"/>
+	</widget>
+	<widget field="CenterX" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="280" y="0"/>
+	</widget>
+	<static-widget class="edu.wpi.first.smartdashboard.gui.elements.RobotPreferences">
+		<location x="713" y="237"/>
+		<height>196</height>
+	</static-widget>
+	<static-widget class="edu.wpi.first.smartdashboard.camera.WPILaptopCameraExtension">
+		<location x="485" y="239"/>
+		<width>230</width>
+		<height>194</height>
+	</static-widget>
+	<static-widget class="edu.wpi.first.smartdashboard.camera.WPICameraExtension">
+		<location x="698" y="-4"/>
+		<property name="Camera IP Address" value="10.26.3.11"/>
+	</static-widget>
+	<static-widget class="edu.wpi.first.smartdashboard.gui.elements.ConnectionIndicator">
+		<location x="-1" y="393"/>
+		<width>43</width>
+		<height>39</height>
+		<property name="Graphics" value="Rounded"/>
+	</static-widget>
+</dashboard>
+<live-window>
+</live-window>
+</xml>
