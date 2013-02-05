@@ -31,8 +31,8 @@ else
 MODE_DIR := NonDebug
 endif
 OBJ_DIR := .
+PRJ_ROOT_DIR := C:/WindRiver/workspace/2603NML
 WS_ROOT_DIR := C:/WindRiver/workspace
-PRJ_ROOT_DIR := $(WS_ROOT_DIR)/2603NML
 
 
 
@@ -55,8 +55,6 @@ LIBS =
 IDE_INCLUDES = -I$(WIND_BASE)/target/h -I$(WIND_BASE)/target/h/WPILib -I$(WIND_BASE)/target/h/wrn/coreip 
 
 IDE_LIBRARIES = $(WIND_BASE)/target/lib/WPILib.a 
-
-IDE_DEFINES = 
 
 
 
@@ -103,7 +101,6 @@ SimpleTemplate/$(MODE_DIR)/% : DEBUGFLAGS_Assembler = -O2 -fstrength-reduce -fno
 endif
 SimpleTemplate/$(MODE_DIR)/% : IDE_INCLUDES = -I$(WIND_BASE)/target/h -I$(WIND_BASE)/target/h/WPILib -I$(WIND_BASE)/target/h/wrn/coreip 
 SimpleTemplate/$(MODE_DIR)/% : IDE_LIBRARIES = $(WIND_BASE)/target/lib/WPILib.a 
-SimpleTemplate/$(MODE_DIR)/% : IDE_DEFINES = 
 SimpleTemplate/$(MODE_DIR)/% : PROJECT_TYPE = DKM
 SimpleTemplate/$(MODE_DIR)/% : DEFINES = 
 SimpleTemplate/$(MODE_DIR)/% : EXPAND_DBG = 0
@@ -148,7 +145,6 @@ SimpleTemplate_partialImage/$(MODE_DIR)/% : DEBUGFLAGS_Assembler = -O2 -fstrengt
 endif
 SimpleTemplate_partialImage/$(MODE_DIR)/% : IDE_INCLUDES = -I$(WIND_BASE)/target/h -I$(WIND_BASE)/target/h/WPILib -I$(WIND_BASE)/target/h/wrn/coreip 
 SimpleTemplate_partialImage/$(MODE_DIR)/% : IDE_LIBRARIES = $(WIND_BASE)/target/lib/WPILib.a 
-SimpleTemplate_partialImage/$(MODE_DIR)/% : IDE_DEFINES = 
 SimpleTemplate_partialImage/$(MODE_DIR)/% : PROJECT_TYPE = DKM
 SimpleTemplate_partialImage/$(MODE_DIR)/% : DEFINES = 
 SimpleTemplate_partialImage/$(MODE_DIR)/% : EXPAND_DBG = 0
@@ -162,7 +158,7 @@ SimpleTemplate_partialImage/$(MODE_DIR)/% : LIBPATH =
 SimpleTemplate_partialImage/$(MODE_DIR)/% : LIBS = 
 SimpleTemplate_partialImage/$(MODE_DIR)/% : OBJ_DIR := SimpleTemplate_partialImage/$(MODE_DIR)
 
-SimpleTemplate_partialImage/$(MODE_DIR)/Objects/2603NML/MyRobot.o : $(PRJ_ROOT_DIR)/MyRobot.cpp $(FORCE_FILE_BUILD)
+SimpleTemplate_partialImage/$(MODE_DIR)/Objects/2603NML/MyRobot.o : C:/WindRiver/workspace/2603NML/MyRobot.cpp
 	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
 
 
@@ -177,8 +173,6 @@ _clean :: SimpleTemplate_partialImage/$(MODE_DIR)/SimpleTemplate_partialImage_cl
 
 SimpleTemplate_partialImage/$(MODE_DIR)/SimpleTemplate_partialImage_clean : 
 	$(TRACE_FLAG)if [ -d "SimpleTemplate_partialImage" ]; then cd "SimpleTemplate_partialImage"; rm -rf $(MODE_DIR); fi
-
-force : 
 
 DEP_FILES := SimpleTemplate_partialImage/$(MODE_DIR)/Objects/2603NML/MyRobot.d
 -include $(DEP_FILES)

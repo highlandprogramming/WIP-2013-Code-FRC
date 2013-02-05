@@ -141,7 +141,7 @@ public:
 		//Their threshold values suck DDDD, from the NIvision assistant will be below.
 		//Threshold threshold(60, 100, 90, 255, 20, 255);	//HSV threshold criteria, ranges are in that order ie. Hue is 60-100
 		//Threshold threshold(100, 255, 230, 255, 140, 255); //New threshold values
-		Threshold threshold(0, 255, 23, 255, 241, 255);
+		Threshold threshold(0, 255, 200, 255, 221, 255);
 		
 		ParticleFilterCriteria2 criteria[] = {
 				{IMAQ_MT_AREA, AREA_MINIMUM, 65535, false, false}
