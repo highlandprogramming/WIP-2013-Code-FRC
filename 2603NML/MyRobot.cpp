@@ -57,34 +57,31 @@ class RobotDemo : public SimpleRobot
 	};
 	
 	//Declare-----------
-	//SmartDashboard *sd;
-	RobotDrive myRobot; // Robot Drive declared.
-	Victor myShooter1; // Shooter motor 1.
-	Victor myShooter2; // Shooter motor 2.
-	Joystick *stick1; // Joystick 1 (Driver)
-	Joystick *stick2; // Joystick 2 (Firing Controls)
-	Joystick *x360; // Gamepad controller
-	Compressor *compressor; // Robot air compressor
-	Solenoid *s[8]; // Declares an array of 8 solenoids as a pointer.
-	PIDOutput *pidOutput; // PID Output
-	Scores *scores; // Declares scores for camera code
+	RobotDrive myRobot;
+	Victor myShooter1;
+	Victor myShooter2;
+	Joystick *stick1;
+	Joystick *stick2;
+	Joystick *x360;
+	Compressor *compressor;
+	Solenoid *s[8];
+	PIDOutput *pidOutput;
+	Scores *scores;
 //	char particle[];
-	bool blnShift, blnFire, blnShoot; // Declares global booleans.
 	
 	
 public:
 	RobotDemo(void):
-		myRobot(1,3,2,4), // Declares Robot drive, separtes by halfs. First half are left motors, second half are right drive motors, aka left is ports 1 and 3 (Odds), right is ports 2 and 4 (Evens).
-		myShooter1(7), // Declares Shooter motor one in port 7.
-		myShooter2(8) // Declares shooter motor two in port 8.
+		myRobot(1,3,2,4),
+		myShooter1(5),
+		myShooter2(6)
 	{
 		//Init-----------
-		stick1 = new Joystick(1); // Initialize stick1 as a Joystick.
-		stick2 = new Joystick(2); // Initialize stick2 as a Joystick.
-		x360 = new Joystick(3); // Initialize the gamepad as a Joystick.
-		compressor = new Compressor(1,1); // Initialize the compressor in Digitial sidecar 1, port 1.
-		// Initialize objects in Solenoid (s[X]) array.
-		s[0] = new Solenoid(1); 
+		stick1 = new Joystick(1);
+		stick2 = new Joystick(2);
+		x360 = new Joystick(3);
+		compressor = new Compressor(1,1);
+		s[0] = new Solenoid(1);
 		s[1] = new Solenoid(2);
 		s[2] = new Solenoid(3);
 		s[3] = new Solenoid(4);
@@ -92,16 +89,13 @@ public:
 		s[5] = new Solenoid(6);
 		s[6] = new Solenoid(7);
 		s[7] = new Solenoid(8);
-		SmartDashboard::init(); // Initialize SmartDashboard
-		myRobot.SetExpiration(0.1); // Set robot motor refresh expirations time as 0.1 seconds.
+		SmartDashboard::init();
+		myRobot.SetExpiration(0.1);
 	}
 	
 	//Deconstructor
 	~RobotDemo()
 	{
-		// WARNING, all objects deconstructed MUST be in the opposite order of which they are delared and initialized.
-		
-		// Deconstruct Solenoids in reverse order.
 		delete s[7];
 		delete s[6];
 		delete s[5];
@@ -121,29 +115,17 @@ public:
 		DriverStationLCD *dsLCD = DriverStationLCD::GetInstance();
 		dsLCD->Clear();
 		dsLCD->UpdateLCD();
-		blnShift = true;
-		blnShoot = true;
-		blnFire = true;
+		//blnShift = true;
 		}
 
 	void Autonomous(void)
 	{
-		
-		// Set super shifters into high gear.
-		s[0]->Set(true);
-		s[1]->Set(true);
+		//s[0]->Set(true);
+		//s[1]->Set(true);
 		SmartDashboard::PutString("Gear","High");
-		
-		// Start compressor
-		compressor->Start();
-		
-		// Enable watchdog.
+		//compressor->Start();
 		GetWatchdog().SetEnabled(false);
-		
-		// Set watchdog expiration time.
 		//GetWatchdog().SetExpiration(10);
-		
-		// Initial feed of watchdog.
 		//GetWatchdog().Feed();
 		myRobot.SetSafetyEnabled(false);
 		/*myRobot.Drive(0.5, 0.0); 	
@@ -188,19 +170,19 @@ public:
 			//image = new RGBImage("/HybridLine_DoubleGreenBK3.jpg");		// get the sample image from the cRIO flash
 			image = camera.GetImage();
 					//camera.GetImage(image);				//To get the images from the camera comment the line above and uncomment this one
-			image->Write("/image.bmp");
+			Wait(.1);
 			
 			//SmartDashboard::PutNumber("Test", 4);
 			BinaryImage *thresholdImage = image->ThresholdHSV(threshold);	// get just the green target pixels
-					thresholdImage->Write("/threshold.bmp");
+			//		thresholdImage->Write("/threshold.bmp");
 
 			//SmartDashboard::PutNumber("Test", 5);
 			BinaryImage *convexHullImage = thresholdImage->ConvexHull(false);  // fill in partial and full rectangles
-					convexHullImage->Write("/ConvexHull.bmp");
+		//			convexHullImage->Write("ConvexHull.bmp");
 
 			//SmartDashboard::PutNumber("Test", 6);
 			BinaryImage *filteredImage = convexHullImage->ParticleFilter(criteria, 1);	//Remove small particles
-					filteredImage->Write("/Filtered.bmp");
+			//		filteredImage->Write("/Filtered.bmp");
 
 			//SmartDashboard::PutNumber("Test", 7);
 			vector<ParticleAnalysisReport> *reports = filteredImage->GetOrderedParticleAnalysisReports();  //get a particle analysis report for each particle
@@ -223,18 +205,25 @@ public:
 				scores[i].aspectRatioInner = scoreAspectRatio(filteredImage, report, false);			
 				scores[i].xEdge = scoreXEdge(thresholdImage, report);
 				scores[i].yEdge = scoreYEdge(thresholdImage, report);
+				
 						
 				if(scoreCompare(scores[i], false))
 				{
 					//We hit this!! Note to self: changethe below printf statement
 					//To use SmartDashboard::PutString so wecan seevalues.
-					printf("particle: %d  is a High Goal  centerX: %f  centerY: %f \n", i, report->center_mass_x_normalized, report->center_mass_y_normalized);
+					//printf("particle: %d  is a High Goal  centerX: %f  centerY: %f \n", i, report->center_mass_x_normalized, report->center_mass_y_normalized);
 					//string particle = ("particle: %d  is a High Goal  centerX: %f  centerY: %f \n", i, report->center_mass_x_normalized, report->center_mass_y_normalized);
+					
 					SmartDashboard::PutNumber("CenterX", report->center_mass_x);
 					SmartDashboard::PutNumber("CenterY", report->center_mass_y);
+					SmartDashboard::PutNumber("Area", report->particleArea);
 					SmartDashboard::PutNumber("Distance",computeDistance(thresholdImage,report, false));
+					SmartDashboard::PutNumber("size", reports->size());
+					SmartDashboard::PutNumber("height", report->boundingRect.height);
+					SmartDashboard::PutNumber("Quality", report->particleQuality);
 					//SmartDashboard::PutNumber("Test",computeDistance(thresholdImage, report, false));
 					//SmartDashboard::PutNumber("Distance",computeDistance(thresholdImage,report, false));
+					SmartDashboard::PutString("high goal detected", "asdf");
 				} 
 				
 				else if (scoreCompare(scores[i], true))
@@ -243,7 +232,9 @@ public:
 					SmartDashboard::PutNumber("Test", computeDistance(thresholdImage, report, true));
 					SmartDashboard::PutNumber("CenterX", report->center_mass_x);
 					SmartDashboard::PutNumber("CenterY", report->center_mass_y);
+					SmartDashboard::PutNumber("height", report->boundingRect.height);
 					SmartDashboard::PutNumber("Distance",computeDistance(thresholdImage,report, false));
+					SmartDashboard::PutString("middle goal detected", "adsf");
 				
 				}
 				
@@ -252,7 +243,16 @@ public:
 					printf("particle: %d  is not a goal  centerX: %f  centerY: %f \n", i, report->center_mass_x_normalized, report->center_mass_y_normalized);
 					SmartDashboard::PutNumber("CenterX", report->center_mass_x);
 					SmartDashboard::PutNumber("CenterY", report->center_mass_y);
+					SmartDashboard::PutNumber("height", report->boundingRect.height);
+					SmartDashboard::PutNumber("Distance",computeDistance(thresholdImage,report, false));
+					SmartDashboard::PutString("we areinelse", "else");
 										
+				}
+				if(report->center_mass_x < 85.00)
+				{								
+					SmartDashboard::PutString("Pausing", "paused");
+					//image->Write("C:\\testimg.bmp");
+					//Wait(10);
 				}
 				printf("rect: %f  ARinner: %f \n", scores[i].rectangularity, scores[i].aspectRatioInner);
 				printf("ARouter: %f  xEdge: %f  yEdge: %f  \n", scores[i].aspectRatioOuter, scores[i].xEdge, scores[i].yEdge);	
@@ -277,44 +277,47 @@ public:
 	void OperatorControl(void)
 	{
 		// Teleoperated Code.
-		
+			
 		// Enable and start the compressor.
 		compressor->Enabled();
 		compressor->Start();
-		
+			
 		// Enable drive motor safety timeout.
 		myRobot.SetSafetyEnabled(true);
-		
+			
 		// Enable watchdog and initial feed.
-		GetWatchdog().SetEnabled(true);
+		GetWatchdog().SetEnabled(false);
 		GetWatchdog().SetExpiration(1);
 		GetWatchdog().Feed();
-		
+			
 		// Set robot in low gear by default. Not active.
 		//s[0]->Set(false);
 		GetWatchdog().Feed();
-		
+			
 		//sd->sendIOPortData();
 
 		// Local variables.
-		float fltStick1X, fltStick1Y;
-		
-		Timer ShifterTimer, FireTimer, ShooterTimer;
-		
-		
-		ShifterTimer.Reset();
-		FireTimer.Reset();
-		ShooterTimer.Reset();
-		
-		
-		ShifterTimer.Start();
-		FireTimer.Start();
-		ShooterTimer.Start();
-		
+		//float fltStick1X, fltStick1Y;
+
+		bool blnShift, blnFire, blnShoot;
+			
+		//Timer ShifterTimer, FireTimer, ShooterTimer;
+			
+			
+		//ShifterTimer.Reset();
+		//FireTimer.Reset();
+		//ShooterTimer.Reset();
+			
+			
+		//ShifterTimer.Start();
+		//FireTimer.Start();
+		//ShooterTimer.Start();
+			
 		// Preset booleans.
-		blnShift = true; // Set to true since auto shifts into High Gear.
-		blnFire = true; // Set true since in the "Ready to fire" position.
-		blnShoot = true; // Set true since motors are ready and currently off.
+		//blnShift = true; // Set to true since auto shifts into High Gear.
+		//blnFire = true; // Set true since in the "Ready to fire" position.
+		//blnShoot = true; // Set true since motors are ready and currently off.
+		
 		
 		while (IsOperatorControl())
 		{
@@ -327,48 +330,50 @@ public:
 
 			SmartDashboard::PutNumber("Left Throttle (%)",fltStick1Y);
 			SmartDashboard::PutNumber("Right Throttle (%)",fltStick1X);
-			// End Gamepad tankdrive code.
+			// End Gamepad tankdrive code.bvg
 			*/
 			
+			
 			// Stick1 arcade drive code.
+			//myRobot.ArcadeDrive(stick1);
 			myRobot.ArcadeDrive(stick1);
 			GetWatchdog().Feed(); // Feed hungary demonic Watchdog.
 
-			
-			SmartDashboard::PutNumber("Throttle (%)",stick1->GetRawY());
-			SmartDashboard::PutNumber("Steering (%)",stick1->GetRawX());
+				
+			SmartDashboard::PutNumber("Throttle (%)",stick1->GetY()*(-100));
+			SmartDashboard::PutNumber("Steering (%)",stick1->GetX()*(100));
 			//End Stick1 arcade drive code.
 			
 			
 			//float fltPressureSwitch = m_pressureSwitch;
 			//float fltRelay = m_relay;
 			//SmartDashboard::PutNumber("Demo",3);
-			
+				
 			GetWatchdog().Feed();
-			if(stick1->GetTrigger() && blnShift == true)
+			if(stick1->GetTrigger() && blnShift == false)
 			{
 				//SafetyTimer.Reset();
 				//SafetyTimer.Start();
 				GetWatchdog().Feed();
 				s[0]->Set(false);
-				s[1]->Set(false);
+				s[1]->Set(true);
 				SmartDashboard::PutString("Gear","Low");
-				blnShift = false;
+				blnShift = true;
 				Wait(.5);
-				
+					
 				GetWatchdog().Feed();
 			}
-			else if(stick1->GetTrigger() && blnShift == false)
+			else if(stick1->GetTrigger() && blnShift == true)
 			{
 				GetWatchdog().Feed();
 				s[0]->Set(true);
-				s[1]->Set(true);
+				s[1]->Set(false);
 				SmartDashboard::PutString("Gear","High");
-				blnShift = true;
+				blnShift = false;
 				Wait(.5);
 				GetWatchdog().Feed();
 			}
-			
+				
 			if(stick2->GetRawButton(2) && blnFire == false)
 			{
 				myShooter1.Set(-1);
@@ -392,21 +397,19 @@ public:
 				
 				GetWatchdog().Feed();
 			}
-			
-			if(stick1->GetTrigger() && blnShoot == true)
+				
+			if(stick2->GetTrigger() && blnShoot == false)
 			{
-				myShooter1.Set(-1);
-				myShooter2.Set(-1);
+				s[2]->Set(true);
 				//SmartDashboard::PutString("Shooter Piston","Firing");
 				blnFire = false;
 				GetWatchdog().Feed();
 				Wait(0.5);
 				GetWatchdog().Feed();
 			}
-			else if(stick2->GetRawButton(2) && blnFire == false)
+			else if(stick2->GetTrigger() && blnShoot == true)
 			{
-				myShooter1.Set(0);
-				myShooter2.Set(0);
+				s[2]->Set(false);
 				blnFire = true;
 				//SmartDashboard::PutString("Shooter Piston","Retracted");
 				GetWatchdog().Feed();
@@ -425,7 +428,9 @@ public:
 		imaqMeasureParticle(image->GetImaqImage(), report->particleIndex, 0, IMAQ_MT_EQUIVALENT_RECT_SHORT_SIDE, &rectShort);
 		//using the smaller of the estimated rectangle short side and the bounding rectangle height results in better performance
 		//on skewed rectangles
-		height = min(report->boundingRect.height, rectShort);
+		SmartDashboard::PutNumber("rectShort", rectShort);
+		//height = min(report->boundingRect.height, rectShort);
+		height = report->boundingRect.height;
 		targetHeight = outer ? 29 : 21;
 		
 		return X_IMAGE_RES * targetHeight / (height * 12 * 2 * tan(VIEW_ANGLE*PI/(180*2)));
