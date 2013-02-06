@@ -58,32 +58,33 @@ class RobotDemo : public SimpleRobot
 	
 	//Declare-----------
 	//SmartDashboard *sd;
-	RobotDrive myRobot;
-	Victor myShooter1;
-	Victor myShooter2;
-	Joystick *stick1;
-	Joystick *stick2;
-	Joystick *x360;
-	Compressor *compressor;
-	Solenoid *s[8];
-	PIDOutput *pidOutput;
-	Scores *scores;
+	RobotDrive myRobot; // Robot Drive declared.
+	Victor myShooter1; // Shooter motor 1.
+	Victor myShooter2; // Shooter motor 2.
+	Joystick *stick1; // Joystick 1 (Driver)
+	Joystick *stick2; // Joystick 2 (Firing Controls)
+	Joystick *x360; // Gamepad controller
+	Compressor *compressor; // Robot air compressor
+	Solenoid *s[8]; // Declares an array of 8 solenoids as a pointer.
+	PIDOutput *pidOutput; // PID Output
+	Scores *scores; // Declares scores for camera code
 //	char particle[];
-	bool blnShift;
+	bool blnShift, blnFire, blnShoot; // Declares global booleans.
 	
 	
 public:
 	RobotDemo(void):
-		myRobot(1,3,2,4),
-		myShooter1(7),
-		myShooter2(8)
+		myRobot(1,3,2,4), // Declares Robot drive, separtes by halfs. First half are left motors, second half are right drive motors, aka left is ports 1 and 3 (Odds), right is ports 2 and 4 (Evens).
+		myShooter1(7), // Declares Shooter motor one in port 7.
+		myShooter2(8) // Declares shooter motor two in port 8.
 	{
 		//Init-----------
-		stick1 = new Joystick(1);
-		stick2 = new Joystick(2);
-		x360 = new Joystick(3);
-		compressor = new Compressor(1,1);
-		s[0] = new Solenoid(1);
+		stick1 = new Joystick(1); // Initialize stick1 as a Joystick.
+		stick2 = new Joystick(2); // Initialize stick2 as a Joystick.
+		x360 = new Joystick(3); // Initialize the gamepad as a Joystick.
+		compressor = new Compressor(1,1); // Initialize the compressor in Digitial sidecar 1, port 1.
+		// Initialize objects in Solenoid (s[X]) array.
+		s[0] = new Solenoid(1); 
 		s[1] = new Solenoid(2);
 		s[2] = new Solenoid(3);
 		s[3] = new Solenoid(4);
@@ -91,13 +92,16 @@ public:
 		s[5] = new Solenoid(6);
 		s[6] = new Solenoid(7);
 		s[7] = new Solenoid(8);
-		SmartDashboard::init();
-		myRobot.SetExpiration(0.1);
+		SmartDashboard::init(); // Initialize SmartDashboard
+		myRobot.SetExpiration(0.1); // Set robot motor refresh expirations time as 0.1 seconds.
 	}
 	
 	//Deconstructor
 	~RobotDemo()
 	{
+		// WARNING, all objects deconstructed MUST be in the opposite order of which they are delared and initialized.
+		
+		// Deconstruct Solenoids in reverse order.
 		delete s[7];
 		delete s[6];
 		delete s[5];
@@ -118,16 +122,28 @@ public:
 		dsLCD->Clear();
 		dsLCD->UpdateLCD();
 		blnShift = true;
+		blnShoot = true;
+		blnFire = true;
 		}
 
 	void Autonomous(void)
 	{
+		
+		// Set super shifters into high gear.
 		s[0]->Set(true);
 		s[1]->Set(true);
 		SmartDashboard::PutString("Gear","High");
+		
+		// Start compressor
 		compressor->Start();
+		
+		// Enable watchdog.
 		GetWatchdog().SetEnabled(false);
+		
+		// Set watchdog expiration time.
 		//GetWatchdog().SetExpiration(10);
+		
+		// Initial feed of watchdog.
 		//GetWatchdog().Feed();
 		myRobot.SetSafetyEnabled(false);
 		/*myRobot.Drive(0.5, 0.0); 	
@@ -260,52 +276,70 @@ public:
 
 	void OperatorControl(void)
 	{
+		// Teleoperated Code.
+		
+		// Enable and start the compressor.
 		compressor->Enabled();
 		compressor->Start();
+		
+		// Enable drive motor safety timeout.
 		myRobot.SetSafetyEnabled(true);
-		GetWatchdog().SetEnabled(false);
+		
+		// Enable watchdog and initial feed.
+		GetWatchdog().SetEnabled(true);
 		GetWatchdog().SetExpiration(1);
 		GetWatchdog().Feed();
 		
-		// Set robot in low gear by default.
-		s[0]->Set(false);
+		// Set robot in low gear by default. Not active.
+		//s[0]->Set(false);
 		GetWatchdog().Feed();
 		
 		//sd->sendIOPortData();
 
 		// Local variables.
-		bool blnFire/*, blnPiston*/;
 		float fltStick1X, fltStick1Y;
 		
-		Timer SafetyTimer;
+		Timer ShifterTimer, FireTimer, ShooterTimer;
 		
-		blnShift = true;
+		
+		ShifterTimer.Reset();
+		FireTimer.Reset();
+		ShooterTimer.Reset();
+		
+		
+		ShifterTimer.Start();
+		FireTimer.Start();
+		ShooterTimer.Start();
+		
+		// Preset booleans.
+		blnShift = true; // Set to true since auto shifts into High Gear.
+		blnFire = true; // Set true since in the "Ready to fire" position.
+		blnShoot = true; // Set true since motors are ready and currently off.
 		
 		while (IsOperatorControl())
 		{
-			//double dblCtrl = SmartDashboard::GetNumber("Controller");
-			
-			//SmartDashboard::PutNumber("Test",dblCtrl);
-			//if(dblCtrl < 1)
-			//{
-				myRobot.TankDrive(x360->GetRawAxis(2),x360->GetRawAxis(4));
-
-				fltStick1Y = (x360->GetRawAxis(2))*(-100);
-				fltStick1X = (x360->GetRawAxis(4))*(-100);
-			//}
-
 			/*
-			else
-			{
-				myRobot.ArcadeDrive(stick1);
+			// Gamepad tankdrive code.
+			myRobot.TankDrive(x360->GetRawAxis(2),x360->GetRawAxis(4));
 
-				fltStick1Y = (stick1->GetY())*(-100);
-				fltStick1X = (stick1->GetX())*(100);
-			}
+			fltStick1Y = (x360->GetRawAxis(2))*(-100);
+			fltStick1X = (x360->GetRawAxis(4))*(-100);
+
+			SmartDashboard::PutNumber("Left Throttle (%)",fltStick1Y);
+			SmartDashboard::PutNumber("Right Throttle (%)",fltStick1X);
+			// End Gamepad tankdrive code.
 			*/
 			
-			SmartDashboard::PutNumber("Throttle (%)",fltStick1Y);
-			SmartDashboard::PutNumber("Steering (%)",fltStick1X);
+			// Stick1 arcade drive code.
+			myRobot.ArcadeDrive(stick1);
+			GetWatchdog().Feed(); // Feed hungary demonic Watchdog.
+
+			
+			SmartDashboard::PutNumber("Throttle (%)",stick1->GetRawY());
+			SmartDashboard::PutNumber("Steering (%)",stick1->GetRawX());
+			//End Stick1 arcade drive code.
+			
+			
 			//float fltPressureSwitch = m_pressureSwitch;
 			//float fltRelay = m_relay;
 			//SmartDashboard::PutNumber("Demo",3);
@@ -353,6 +387,28 @@ public:
 				blnFire = false;
 				SmartDashboard::PutString("Shooter","Off");
 				SmartDashboard::PutNumber("Shooter Speed (%)",0);
+				GetWatchdog().Feed();
+				Wait(0.5);
+				
+				GetWatchdog().Feed();
+			}
+			
+			if(stick1->GetTrigger() && blnShoot == true)
+			{
+				myShooter1.Set(-1);
+				myShooter2.Set(-1);
+				//SmartDashboard::PutString("Shooter Piston","Firing");
+				blnFire = false;
+				GetWatchdog().Feed();
+				Wait(0.5);
+				GetWatchdog().Feed();
+			}
+			else if(stick2->GetRawButton(2) && blnFire == false)
+			{
+				myShooter1.Set(0);
+				myShooter2.Set(0);
+				blnFire = true;
+				//SmartDashboard::PutString("Shooter Piston","Retracted");
 				GetWatchdog().Feed();
 				Wait(0.5);
 				
