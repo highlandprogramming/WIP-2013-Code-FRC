@@ -135,11 +135,24 @@ public:
 		
 		//int x = 0;
 		
+		int WaitDash = 0;
+		int FireDash = 0;
+		int intPause = 0;
+		
+		SmartDashboard::PutNumber("fire_wait", 1);
+		SmartDashboard::PutNumber("fire_amount", 1);
+		SmartDashboard::PutNumber("fire_pause", 1);
+		
+		//WaitDash = static_cast<int>(SmartDashboard::GetNumber("fire_wait"));
+		//FireDash = static_cast<int>(SmartDashboard::GetNumber("fire_amount"));
+		//intPause = static_cast<int>(SmartDashboard::GetNumber("fire_pause"));
+		
+
 		
 		//Their threshold values suck DDDD, from the NIvision assistant will be below.
 		//Threshold threshold(60, 100, 90, 255, 20, 255);	//HSV threshold criteria, ranges are in that order ie. Hue is 60-100
 		//Threshold threshold(100, 255, 230, 255, 140, 255); //New threshold values
-		Threshold threshold(0, 255, 200, 255, 221, 255);
+		Threshold threshold(0, 255, 0, 255, 221, 255);
 		
 		ParticleFilterCriteria2 criteria[] = {
 				{IMAQ_MT_AREA, AREA_MINIMUM, 65535, false, false}
@@ -156,7 +169,58 @@ public:
 			//SmartDashboard::PutNumber("Test", 1);
 			//if(0 == 0)
 			//{
+			
+			compressor->Enabled();
+			compressor->Start();
+			
+			myRobot.SetSafetyEnabled(true);
+			
+			
+			GetWatchdog().SetEnabled(true);
+			GetWatchdog().SetExpiration(1);
+			GetWatchdog().Feed();
+			
+			myShooter1.Set(-1);
+			myShooter2.Set(-1);
+			GetWatchdog().Feed();
+		
+			
+			GetWatchdog().Feed();
+			
+			// Wait before firing.
+			for(int x = 0; x< (5*2);x++)
+			{
+				GetWatchdog().Feed();
+				Wait(0.5);
+			}
 
+			
+			// Fire a number of frisbees as set in the dashboard.
+			for(int count = 0; count < (3);count++)
+			{
+				GetWatchdog().Feed();
+				s[2]->Set(true);
+				
+				// Delay between firing each frisbees.
+				for(int wait = 0; wait<(5);wait++)
+				{
+					GetWatchdog().Feed();
+					Wait(0.5);
+				}
+				s[2]->Set(false);
+				GetWatchdog().Feed();
+				for(int secondwait = 0;secondwait<3;secondwait++)
+				{
+					GetWatchdog().Feed();
+					Wait(0.5);
+				}
+			}
+			
+			
+			myShooter1.Set(0);
+			myShooter2.Set(0);
+			GetWatchdog().Feed();
+			
 			//SmartDashboard::PutNumber("Test", 2);
 			AxisCamera &camera = AxisCamera::GetInstance("10.26.3.11");
 			camera.WriteResolution(AxisCamera::kResolution_320x240);
@@ -277,9 +341,24 @@ public:
 	void OperatorControl(void)
 	{
 		// Teleoperated Code.
+		double WaitDash = 0.0;
+		double FireDash = 0.0;
+		double intPause = 0.0;
+		
+		SmartDashboard::PutNumber("P", 3.0);
+		SmartDashboard::PutNumber("W", 0.0);
+		SmartDashboard::PutNumber("A", 0.0);
+		
+		WaitDash = SmartDashboard::GetNumber("P");
+		FireDash = SmartDashboard::GetNumber("W");
+		intPause = SmartDashboard::GetNumber("A");
+		
+		SmartDashboard::PutNumber("P", WaitDash);
+		SmartDashboard::PutNumber("W", FireDash);
+		SmartDashboard::PutNumber("A", WaitDash);
 			
 		// Enable and start the compressor.
-		compressor->Enabled();
+		//compressor->Enabled();
 		compressor->Start();
 			
 		// Enable drive motor safety timeout.
@@ -299,8 +378,10 @@ public:
 		// Local variables.
 		//float fltStick1X, fltStick1Y;
 
-		bool blnShift, blnFire, blnShoot;
-			
+		bool blnShift;
+		
+		bool blnFire, blnCtrlFire, blnFire90, blnFire80, blnFire70, blnFire60;//, blnFire50, blnFire40, blnFire30, blnFire20;
+		
 		//Timer ShifterTimer, FireTimer, ShooterTimer;
 			
 			
@@ -344,6 +425,15 @@ public:
 			SmartDashboard::PutNumber("Steering (%)",stick1->GetX()*(100));
 			//End Stick1 arcade drive code.
 			
+			SmartDashboard::PutNumber("Button 5",stick2->GetRawButton(5));
+			SmartDashboard::PutNumber("Button 6",stick2->GetRawButton(6));
+			SmartDashboard::PutNumber("Button 5",stick2->GetRawButton(7));
+			
+			float fltShoot = (((-(stick2->GetRawAxis(3)))+1)/2);
+			
+			SmartDashboard::PutNumber("Shooter Power (%)", fltShoot);
+			
+			
 			
 			//float fltPressureSwitch = m_pressureSwitch;
 			//float fltRelay = m_relay;
@@ -373,19 +463,178 @@ public:
 				Wait(.5);
 				GetWatchdog().Feed();
 			}
-				
-			if(stick2->GetRawButton(2) && blnFire == false)
+			
+
+			bool blnLowHang;
+			
+			if(stick1->GetRawButton(2) && blnLowHang == false)
 			{
-				myShooter1.Set(-1);
-				myShooter2.Set(-1);
+				s[3]->Set(true);
+				blnLowHang = true;
+				SmartDashboard::PutString("Low Hang", "Out");
+				GetWatchdog().Feed();
+			}
+			else if(stick1->GetRawButton(2) && blnLowHang == true)
+			{
+				s[3]->Set(false);
+				blnLowHang = false;
+				SmartDashboard::PutString("Low Hang", "In");
+				GetWatchdog().Feed();
+			}
+			
+			bool blnShoot;
+			bool blnFailtest;
+			
+			if(stick2->GetRawButton(9))
+			{
+				s[2]->Set(true);
+				SmartDashboard::PutString("Shooter Piston","In");
+				blnFailtest = true;
+				GetWatchdog().Feed();
+				Wait(0.5);
+				GetWatchdog().Feed();
+			}
+			else if(stick2->GetRawButton(8))
+			{
+				s[2]->Set(false);
+				blnFailtest = false;
+				SmartDashboard::PutString("Shooter Piston","Out");
+				GetWatchdog().Feed();
+				Wait(0.5);
+				
+				GetWatchdog().Feed();
+			}
+			
+			if(stick1->GetRawButton(3))
+			{
+				Threshold threshold(0, 255, 0, 255, 221, 255);
+				
+				ParticleFilterCriteria2 criteria[] = {{IMAQ_MT_AREA, AREA_MINIMUM, 65535, false, false}};		
+			
+				AxisCamera &camera = AxisCamera::GetInstance("10.26.3.11");
+				camera.WriteResolution(AxisCamera::kResolution_320x240);
+				camera.WriteCompression(20);
+				camera.WriteBrightness(50);
+							
+
+				//SmartDashboard::PutNumber("Test", 3);
+							
+				ColorImage *image;
+				//image = new RGBImage("/HybridLine_DoubleGreenBK3.jpg");		// get the sample image from the cRIO flash
+				image = camera.GetImage();
+				//camera.GetImage(image);				//To get the images from the camera comment the line above and uncomment this one
+				Wait(.1);
+							
+				//SmartDashboard::PutNumber("Test", 4);
+				BinaryImage *thresholdImage = image->ThresholdHSV(threshold);	// get just the green target pixels
+				//		thresholdImage->Write("/threshold.bmp");
+
+				//SmartDashboard::PutNumber("Test", 5);
+				BinaryImage *convexHullImage = thresholdImage->ConvexHull(false);  // fill in partial and full rectangles
+				//			convexHullImage->Write("ConvexHull.bmp");
+
+				//SmartDashboard::PutNumber("Test", 6);
+				BinaryImage *filteredImage = convexHullImage->ParticleFilter(criteria, 1);	//Remove small particles
+				//		filteredImage->Write("/Filtered.bmp");
+				//SmartDashboard::PutNumber("Test", 7);
+				vector<ParticleAnalysisReport> *reports = filteredImage->GetOrderedParticleAnalysisReports();  //get a particle analysis report for each particle
+
+				//SmartDashboard::PutNumber("Test", 8);
+				int size = reports->size();
+				scores = new Scores[size];
+									
+
+				//SmartDashboard::PutNumber("Test", 9);
+				//Iterate through each particle, scoring it and determining whether it is a target or not
+				for (unsigned i = 0; i < reports->size(); i++)
+				{
+					//SmartDashboard::PutNumber("Test", 10);
+					ParticleAnalysisReport *report = &(reports->at(i));
+										
+					scores[i].rectangularity = scoreRectangularity(report);
+					scores[i].aspectRatioOuter = scoreAspectRatio(filteredImage, report, true);
+					scores[i].aspectRatioInner = scoreAspectRatio(filteredImage, report, false);			
+					scores[i].xEdge = scoreXEdge(thresholdImage, report);
+					scores[i].yEdge = scoreYEdge(thresholdImage, report);
+								
+										
+					if(scoreCompare(scores[i], false))
+					{
+						//We hit this!! Note to self: changethe below printf statement
+						//To use SmartDashboard::PutString so wecan seevalues.
+						//printf("particle: %d  is a High Goal  centerX: %f  centerY: %f \n", i, report->center_mass_x_normalized, report->center_mass_y_normalized);
+						//string particle = ("particle: %d  is a High Goal  centerX: %f  centerY: %f \n", i, report->center_mass_x_normalized, report->center_mass_y_normalized);
+									
+						SmartDashboard::PutNumber("CenterX", report->center_mass_x);
+						SmartDashboard::PutNumber("CenterY", report->center_mass_y);
+						SmartDashboard::PutNumber("Area", report->particleArea);
+						SmartDashboard::PutNumber("Distance",computeDistance(thresholdImage,report, false));
+						SmartDashboard::PutNumber("size", reports->size());
+						SmartDashboard::PutNumber("height", report->boundingRect.height);
+						SmartDashboard::PutNumber("Quality", report->particleQuality);
+						//SmartDashboard::PutNumber("Test",computeDistance(thresholdImage, report, false));
+						//SmartDashboard::PutNumber("Distance",computeDistance(thresholdImage,report, false));
+						SmartDashboard::PutString("high goal detected", "asdf");
+					} 
+								
+					else if (scoreCompare(scores[i], true))
+					{
+						printf("particle: %d  is a Middle Goal  centerX: %f  centerY: %f \n", i, report->center_mass_x_normalized, report->center_mass_y_normalized);
+						SmartDashboard::PutNumber("Test", computeDistance(thresholdImage, report, true));
+						SmartDashboard::PutNumber("CenterX", report->center_mass_x);
+						SmartDashboard::PutNumber("CenterY", report->center_mass_y);
+						SmartDashboard::PutNumber("height", report->boundingRect.height);
+						SmartDashboard::PutNumber("Distance",computeDistance(thresholdImage,report, false));
+						SmartDashboard::PutString("middle goal detected", "adsf");
+						
+					}
+								
+					else
+					{
+						printf("particle: %d  is not a goal  centerX: %f  centerY: %f \n", i, report->center_mass_x_normalized, report->center_mass_y_normalized);
+						SmartDashboard::PutNumber("CenterX", report->center_mass_x);
+						SmartDashboard::PutNumber("CenterY", report->center_mass_y);
+						SmartDashboard::PutNumber("height", report->boundingRect.height);
+						SmartDashboard::PutNumber("Distance",computeDistance(thresholdImage,report, false));
+						SmartDashboard::PutString("we areinelse", "else");
+											
+					}
+					if(report->center_mass_x < 85.00)
+					{								
+						SmartDashboard::PutString("Pausing", "paused");
+						//image->Write("C:\\testimg.bmp");
+						//Wait(10);
+					}
+					printf("rect: %f  ARinner: %f \n", scores[i].rectangularity, scores[i].aspectRatioInner);
+					printf("ARouter: %f  xEdge: %f  yEdge: %f  \n", scores[i].aspectRatioOuter, scores[i].xEdge, scores[i].yEdge);	
+				}
+					printf("\n");
+									
+					// be sure to delete images after using them
+					delete filteredImage;
+					delete convexHullImage;
+					delete thresholdImage;
+					delete image;
+									
+									//delete allocated reports and Scores objects also
+					delete scores;
+					delete reports;
+			}
+			
+			if(stick2->GetRawButton(3) && blnFire == false)
+			{
+				//myShooter1.Set(-1);
+				//myShooter2.Set(-1);
+				myShooter1.Set((stick2->GetRawAxis(3))/2);
+				myShooter2.Set((stick2->GetRawAxis(3))/2);
 				SmartDashboard::PutString("Shooter","On");
-				SmartDashboard::PutNumber("Shooter Speed (%)",100);
+				SmartDashboard::PutNumber("Shooter Speed (%)",fltShoot);
 				blnFire = true;
 				GetWatchdog().Feed();
 				Wait(0.5);
 				GetWatchdog().Feed();
 			}
-			else if(stick2->GetRawButton(2) && blnFire == true)
+			else if(stick2->GetRawButton(3) && blnFire == true)
 			{
 				myShooter1.Set(0);
 				myShooter2.Set(0);
@@ -397,29 +646,145 @@ public:
 				
 				GetWatchdog().Feed();
 			}
-				
-			if(stick2->GetTrigger() && blnShoot == false)
+			
+			if(stick2->GetRawButton(2) && blnCtrlFire == false)
 			{
-				s[2]->Set(true);
-				//SmartDashboard::PutString("Shooter Piston","Firing");
-				blnFire = false;
+				myShooter1.Set(-1);
+				myShooter2.Set(-1);
+				//myShooter1.Set(-(stick2->GetRawAxis(3))/2);
+				//myShooter2.Set(-(stick2->GetRawAxis(3))/2);
+				SmartDashboard::PutString("Shooter","On");
+				SmartDashboard::PutNumber("Shooter Speed (%)",fltShoot);
+				blnCtrlFire = true;
 				GetWatchdog().Feed();
 				Wait(0.5);
 				GetWatchdog().Feed();
 			}
-			else if(stick2->GetTrigger() && blnShoot == true)
+			else if(stick2->GetRawButton(2) && blnCtrlFire == true)
 			{
-				s[2]->Set(false);
-				blnFire = true;
-				//SmartDashboard::PutString("Shooter Piston","Retracted");
+				myShooter1.Set(0);
+				myShooter2.Set(0);
+				blnCtrlFire = false;
+				SmartDashboard::PutString("Shooter","Off");
+				SmartDashboard::PutNumber("Shooter Speed (%)",0);
 				GetWatchdog().Feed();
 				Wait(0.5);
 				
 				GetWatchdog().Feed();
 			}
+			
+			if(stick2->GetRawButton(4) && blnFire90 == false)
+			{
+				myShooter1.Set(-0.9);
+				myShooter2.Set(-0.9);
+				SmartDashboard::PutString("Shooter","On");
+				SmartDashboard::PutNumber("Shooter Speed (%)",90);
+				blnFire90 = true;
+				GetWatchdog().Feed();
+				Wait(0.5);
+				GetWatchdog().Feed();
+			}
+			else if(stick2->GetRawButton(4) && blnFire90 == true)
+			{
+				myShooter1.Set(0);
+				myShooter2.Set(0);
+				blnFire90 = false;
+				SmartDashboard::PutString("Shooter","Off");
+				SmartDashboard::PutNumber("Shooter Speed (%)",0);
+				GetWatchdog().Feed();
+				Wait(0.5);
+				
+				GetWatchdog().Feed();
+			}
+			
+			if(stick2->GetRawButton(5) && blnFire80 == false)
+			{
+				myShooter1.Set(-0.8);
+				myShooter2.Set(-0.8);
+				SmartDashboard::PutString("Shooter","On");
+				SmartDashboard::PutNumber("Shooter Speed (%)",80);
+				blnFire80 = true;
+				GetWatchdog().Feed();
+				Wait(0.5);
+				GetWatchdog().Feed();
+			}
+			else if(stick2->GetRawButton(5) && blnFire80 == true)
+			{
+				myShooter1.Set(0);
+				myShooter2.Set(0);
+				blnFire80 = false;
+				SmartDashboard::PutString("Shooter","Off");
+				SmartDashboard::PutNumber("Shooter Speed (%)",0);
+				GetWatchdog().Feed();
+				Wait(0.5);
+				
+				GetWatchdog().Feed();
+			}
+			
+			if(stick2->GetRawButton(7) && blnFire70 == false)
+			{
+				myShooter1.Set(-0.7);
+				myShooter2.Set(-0.7);
+				SmartDashboard::PutString("Shooter","On");
+				SmartDashboard::PutNumber("Shooter Speed (%)",70);
+				blnFire70 = true;
+				GetWatchdog().Feed();
+				Wait(0.5);
+				GetWatchdog().Feed();
+			}
+			else if(stick2->GetRawButton(7) && blnFire70 == true)
+			{
+				myShooter1.Set(0);
+				myShooter2.Set(0);
+				blnFire70 = false;
+				SmartDashboard::PutString("Shooter","Off");
+				SmartDashboard::PutNumber("Shooter Speed (%)",0);
+				GetWatchdog().Feed();
+				Wait(0.5);
+				
+				GetWatchdog().Feed();
+			}
+				
+			if(stick2->GetRawButton(6) && blnFire60 == false)
+			{
+				myShooter1.Set(-0.6);
+				myShooter2.Set(-0.6);
+				SmartDashboard::PutString("Shooter","On");
+				SmartDashboard::PutNumber("Shooter Speed (%)",60);
+				blnFire60 = true;
+				GetWatchdog().Feed();
+				Wait(0.5);
+				GetWatchdog().Feed();
+			}
+			else if(stick2->GetRawButton(6) && blnFire60 == true)
+			{
+				myShooter1.Set(0);
+				myShooter2.Set(0);
+				blnFire60 = false;
+				SmartDashboard::PutString("Shooter","Off");
+				SmartDashboard::PutNumber("Shooter Speed (%)",0);
+				GetWatchdog().Feed();
+				Wait(0.5);
+				
+				GetWatchdog().Feed();
+			}
+			
 			GetWatchdog().Feed();
 		}
 	}
+	
+	/*
+	void ShooterSpeed(int intButton, double dblSpeed, bool blnSpeed)
+	{
+		if(stick2->GetRawButton(intButton) && blnSpeed == false)
+		{
+			myShooter1.Set(-intSpeed);
+			myShooter2.Set(-intSpeed);
+			blnSpeed = false;
+			
+		}
+	}
+	*/
 	
 	double computeDistance (BinaryImage *image, ParticleAnalysisReport *report, bool outer) {
 		double rectShort, height;
