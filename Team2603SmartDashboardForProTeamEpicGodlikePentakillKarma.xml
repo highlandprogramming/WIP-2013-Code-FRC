@@ -1,5 +1,60 @@
 <xml version="1.0">
 <dashboard>
+	<widget field="A" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="0" y="214"/>
+	</widget>
+	<widget field="W" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="0" y="193"/>
+	</widget>
+	<widget field="P" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="0" y="172"/>
+	</widget>
+	<widget field="Fire Amount" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="0" y="151"/>
+	</widget>
+	<widget field="Fire Wait" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="0" y="130"/>
+	</widget>
+	<widget field="Button 6" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="349" y="332"/>
+	</widget>
+	<widget field="Button 5" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="345" y="304"/>
+	</widget>
+	<widget field="Shooter Piston" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="25" y="109"/>
+	</widget>
+	<widget field="Testing" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="59" y="84"/>
+	</widget>
+	<widget field="Shooter Power (%)" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="3" y="54"/>
+	</widget>
+	<widget field="height" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="297" y="255"/>
+	</widget>
+	<widget field="we areinelse" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="265" y="229"/>
+	</widget>
+	<widget field="size" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="306" y="201"/>
+	</widget>
+	<widget field="rectShort" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="277" y="176"/>
+	</widget>
+	<widget field="high goal detected" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="231" y="147"/>
+	</widget>
+	<widget field="Quality" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="285" y="119"/>
+		<height>21</height>
+	</widget>
+	<widget field="Pausing" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="281" y="94"/>
+	</widget>
+	<widget field="Area" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="295" y="69"/>
+	</widget>
 	<static-widget class="edu.wpi.first.smartdashboard.gui.elements.Label">
 		<location x="490" y="221"/>
 		<property name="Text" value="WARNING: Camera has 0.5 second delay!"/>
@@ -29,7 +84,7 @@
 		<location x="280" y="0"/>
 	</widget>
 	<static-widget class="edu.wpi.first.smartdashboard.gui.elements.RobotPreferences">
-		<location x="713" y="237"/>
+		<location x="718" y="217"/>
 		<height>196</height>
 	</static-widget>
 	<static-widget class="edu.wpi.first.smartdashboard.camera.WPILaptopCameraExtension">
