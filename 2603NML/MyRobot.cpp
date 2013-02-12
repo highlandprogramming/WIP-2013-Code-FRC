@@ -143,9 +143,9 @@ public:
 		int FireDash = 0;
 		int intPause = 0;
 		
-		//SmartDashboard::PutNumber("fire_wait", 1);
-		//SmartDashboard::PutNumber("fire_amount", 1);
-		//SmartDashboard::PutNumber("fire_pause", 1);
+		//SmartDashboard::PutNumber("fire_wait", 3);
+		//SmartDashboard::PutNumber("fire_amount", 3);
+		//SmartDashboard::PutNumber("fire_pause", 5);
 		
 		WaitDash = static_cast<int>(SmartDashboard::GetNumber("fire_wait"));
 		FireDash = static_cast<int>(SmartDashboard::GetNumber("fire_amount"));
@@ -192,7 +192,7 @@ public:
 			GetWatchdog().Feed();
 			
 			// Wait before firing.
-			for(int x = 0; x< (intPause+1);x++)
+			for(int x = 0; x< ((intPause*2)+1);x++)
 			{
 				GetWatchdog().Feed();
 				Wait(0.5);
@@ -377,7 +377,7 @@ public:
 		//s[0]->Set(false);
 		GetWatchdog().Feed();
 		
-		bool blnShoot = false;
+		//bool blnShoot = false;
 		bool blnLowHang = false;
 		bool blnShift = false;
 
@@ -387,34 +387,15 @@ public:
 		
 		float fltShoot;
 		float fltSpeed = 1;
-		double dblSpeed;
+		
+		int intFail = 0;
 		
 		GetWatchdog().Feed();
-		//, blnFire50, blnFire40, blnFire30, blnFire20;
 			
 		//sd->sendIOPortData();
 
 		// Local variables.
 		//float fltStick1X, fltStick1Y;
-
-
-		//Timer ShifterTimer, FireTimer, ShooterTimer;
-			
-			
-		//ShifterTimer.Reset();
-		//FireTimer.Reset();
-		//ShooterTimer.Reset();
-			
-			
-		//ShifterTimer.Start();
-		//FireTimer.Start();
-		//ShooterTimer.Start();
-			
-		// Preset booleans.
-		//blnShift = true; // Set to true since auto shifts into High Gear.
-		//blnFire = true; // Set true since in the "Ready to fire" position.
-		//blnShoot = true; // Set true since motors are ready and currently off.
-		
 		
 		while (IsOperatorControl())
 		{
@@ -442,10 +423,6 @@ public:
 
 			GetWatchdog().Feed();
 			//End Stick1 arcade drive code.
-			
-			SmartDashboard::PutNumber("Button 5",stick2->GetRawButton(5));
-			SmartDashboard::PutNumber("Button 6",stick2->GetRawButton(6));
-			SmartDashboard::PutNumber("Button 7",stick2->GetRawButton(7));
 
 			GetWatchdog().Feed();
 			
@@ -454,6 +431,7 @@ public:
 			GetWatchdog().Feed();
 			
 			SmartDashboard::PutNumber("Shooter Power (%)", fltShoot);
+			SmartDashboard::PutNumber("Shooter Set Speed (%)", (fltSpeed*100));
 			
 			
 			
@@ -518,7 +496,7 @@ public:
 				
 			}
 			
-			if(stick2->GetTrigger() && blnShoot == false)
+			/*if(stick2->GetTrigger() && blnShoot == false)
 			{
 				
 				s[2]->Set(true);
@@ -534,6 +512,29 @@ public:
 				
 				s[2]->Set(false);
 				blnShoot = false;
+				SmartDashboard::PutString("Shooter Piston","Out");
+				GetWatchdog().Feed();
+				Wait(0.5);
+				GetWatchdog().Feed();
+				
+			}*/
+			
+			if(stick2->GetTrigger() && intFail == 0)
+			{
+				
+				s[2]->Set(true);
+				SmartDashboard::PutString("Shooter Piston","In");
+				intFail = 1;
+				GetWatchdog().Feed();
+				Wait(0.5);
+				GetWatchdog().Feed();
+				
+			}
+			else if(stick2->GetTrigger() && intFail == 1)
+			{
+				
+				s[2]->Set(false);
+				intFail = 0;
 				SmartDashboard::PutString("Shooter Piston","Out");
 				GetWatchdog().Feed();
 				Wait(0.5);
@@ -568,12 +569,12 @@ public:
 				
 			}
 			
-			if(stick2->GetRawButton(6))
+			if(stick2->GetRawButton(10))
 			{
 				fltSpeed = 0.6;
 				GetWatchdog().Feed();
 			}
-			if(stick2->GetRawButton(7))
+			if(stick2->GetRawButton(9))
 			{
 				fltSpeed = 0.7;
 				GetWatchdog().Feed();
@@ -583,12 +584,12 @@ public:
 				fltSpeed = 0.8;
 				GetWatchdog().Feed();
 			}
-			if(stick2->GetRawButton(9))
+			if(stick2->GetRawButton(7))
 			{
 				fltSpeed = 0.9;
 				GetWatchdog().Feed();
 			}
-			if(stick2->GetRawButton(10))
+			if(stick2->GetRawButton(6))
 			{
 				fltSpeed = 1;
 				GetWatchdog().Feed();
@@ -717,19 +718,6 @@ public:
 		delete scores;
 		delete reports;
 	}
-	
-	/*
-	void ShooterSpeed(int intButton, double dblSpeed, bool blnSpeed)
-	{
-		if(stick2->GetRawButton(intButton) && blnSpeed == false)
-		{
-			myShooter1.Set(-intSpeed);
-			myShooter2.Set(-intSpeed);
-			blnSpeed = false;
-			
-		}
-	}
-	*/
 	
 	double computeDistance (BinaryImage *image, ParticleAnalysisReport *report, bool outer) {
 		double rectShort, height;

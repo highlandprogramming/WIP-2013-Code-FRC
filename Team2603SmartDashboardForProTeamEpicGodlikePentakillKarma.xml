@@ -1,5 +1,18 @@
 <xml version="1.0">
 <dashboard>
+	<widget field="Button 7" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="348" y="367"/>
+	</widget>
+	<widget field="fire_pause" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="824" y="330"/>
+	</widget>
+	<widget field="fire_amount" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="820" y="304"/>
+	</widget>
+	<widget field="fire_wait" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="830" y="278"/>
+		<height>21</height>
+	</widget>
 	<widget field="A" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
 		<location x="0" y="214"/>
 	</widget>
@@ -17,6 +30,7 @@
 	</widget>
 	<widget field="Button 6" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
 		<location x="349" y="332"/>
+		<height>26</height>
 	</widget>
 	<widget field="Button 5" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
 		<location x="345" y="304"/>
@@ -83,10 +97,6 @@
 	<widget field="CenterX" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
 		<location x="280" y="0"/>
 	</widget>
-	<static-widget class="edu.wpi.first.smartdashboard.gui.elements.RobotPreferences">
-		<location x="718" y="217"/>
-		<height>196</height>
-	</static-widget>
 	<static-widget class="edu.wpi.first.smartdashboard.camera.WPILaptopCameraExtension">
 		<location x="485" y="239"/>
 		<width>230</width>
