@@ -8,13 +8,8 @@
 #include "Vision/RGBImage.h"
 #include "Vision/BinaryImage.h"
 #include "Math.h"
-//#include "SmartDashboard/SendableChooser.h"
-//#include "SmartDashboard/Sendable.h"
-//#include "SmartDashboard/NamedSendable.h"
-//#include "Target.h"
-//#include "BinaryImage.h"
-//#include "VisionAPI.h"
-// #@$%#@$^%^@$%^!#$%#$^@$%&&$%$^!$#%#@$% http://www.chiefdelphi.com/forums/showthread.php?t=101624 is the forum page
+#include "myRobotDrive.h"
+
 //Camera constants used for distance calculation
 #define X_IMAGE_RES 320		//X Image resolution in pixels, should be 160, 320 or 640
 //#define VIEW_ANGLE 48		//Axis 206 camera
@@ -57,6 +52,10 @@ class RobotDemo : public SimpleRobot
 	};
 	
 	//Declare-----------
+	Talon *LF;
+	Talon *LR;
+	Talon *RF;
+	Talon *RR;
 	RobotDrive myRobot;
 	Victor myShooter1;
 	Victor myShooter2;
@@ -68,18 +67,22 @@ class RobotDemo : public SimpleRobot
 	PIDOutput *pidOutput;
 	Scores *scores;
 //	char particle[];
-	
 
-	
 	
 	
 public:
 	RobotDemo(void):
-		myRobot(1,3,2,4),
+		
+		//myRobot(1,3,2,4),
+		myRobot(LF,LR,RF,RR),
 		myShooter1(5),
 		myShooter2(6)
 	{
 		//Init-----------
+		LF = new Talon(1);
+		LR = new Talon(3);
+		RF = new Talon(2);
+		RR = new Talon(4);
 		stick1 = new Joystick(1);
 		stick2 = new Joystick(2);
 		x360 = new Joystick(3);
@@ -412,8 +415,16 @@ public:
 			*/
 			
 			
+			
 			// Stick1 arcade drive code.
-			myRobot.ArcadeDrive(stick1);
+			//myRobot.ArcadeDrive(stick1->GetY(),0,true);
+			//LF->Set(stick1->GetY());
+			//LR->Set(stick1->GetY());
+			//RF->Set(stick1->GetY());
+			//RR->Set(stick1->GetY());
+			
+			singleDrive(stick1->GetY(),stick1->GetX(),true);
+			
 			//myRobot.ArcadeDrive(stick1);
 			GetWatchdog().Feed(); // Feed hungary demonic Watchdog.
 
@@ -432,8 +443,6 @@ public:
 			
 			SmartDashboard::PutNumber("Shooter Power (%)", fltShoot);
 			SmartDashboard::PutNumber("Shooter Set Speed (%)", (fltSpeed*100));
-			
-			
 			
 			//float fltPressureSwitch = m_pressureSwitch;
 			//float fltRelay = m_relay;
@@ -602,6 +611,36 @@ public:
 			GetWatchdog().Feed();
 		}
 	}
+	
+	/*
+	void Test(void)
+	{
+		compressor->Start();
+		myRobot.SetSafetyEnabled(true);
+		GetWatchdog().SetEnabled(true);
+		GetWatchdog().SetExpiration(1);
+		GetWatchdog().Feed();
+		
+		while(IsTest())
+		{
+
+			GetWatchdog().Feed();
+			if(stick1->GetRawButton(3))
+			{
+				leftFront.Set(-0.1);
+				leftRear.Set(0.1);
+				rightFront.Set(-0.1);
+				rightRear.Set(0.1);
+				GetWatchdog().Feed();
+			}
+			else
+			{
+				myRobot.ArcadeDrive(stick1);
+				GetWatchdog().Feed();
+			}
+		}
+	}
+	*/
 	
 	void mtdCameraCode(void)
 	{
@@ -802,6 +841,96 @@ public:
 		imaqDispose(averages);						//let IMAQ dispose of the averages struct
 		return total;
 	}	
+	
+	void singleDrive(float moveValue, float rotateValue, bool squaredInputs)
+	{
+
+		// local variables to hold the computed PWM values for the motors
+		float leftMotorOutput;
+		float rightMotorOutput;
+
+		moveValue = Limit(moveValue);
+		rotateValue = Limit(rotateValue);
+
+		if (squaredInputs)
+		{
+			// square the inputs (while preserving the sign) to increase fine control while permitting full power
+			if (moveValue >= 0.0)
+			{
+				moveValue = (moveValue * moveValue);
+			}
+			else
+			{
+				moveValue = -(moveValue * moveValue);
+			}
+			if (rotateValue >= 0.0)
+			{
+				rotateValue = (rotateValue * rotateValue);
+			}
+			else
+			{
+				rotateValue = -(rotateValue * rotateValue);
+			}
+		}
+
+		if (moveValue > 0.0)
+		{
+			if (rotateValue > 0.0)
+			{
+				leftMotorOutput = moveValue - rotateValue;
+				rightMotorOutput = max(moveValue, rotateValue);
+			}
+			else
+			{
+				leftMotorOutput = max(moveValue, -rotateValue);
+				rightMotorOutput = moveValue + rotateValue;
+			}
+		}
+		else
+		{
+			if (rotateValue > 0.0)
+			{
+				leftMotorOutput = - max(-moveValue, rotateValue);
+				rightMotorOutput = moveValue + rotateValue;
+			}
+			else
+			{
+				leftMotorOutput = moveValue - rotateValue;
+				rightMotorOutput = - max(-moveValue, -rotateValue);
+			}
+		}
+		MotorOut(leftMotorOutput, rightMotorOutput);
+	}
+	
+	void MotorOut(float leftOutput, float rightOutput)
+	{
+		if (LF != NULL)
+		{
+			LF->Set((Limit(leftOutput))*-1);
+			LR->Set((Limit(leftOutput))*-1);
+		}
+
+		if (RF != NULL)
+		{
+			RF->Set(Limit(rightOutput));
+			RR->Set(Limit(rightOutput));
+		}
+
+		//m_safetyHelper->Feed();
+	}
+
+	float Limit(float num)
+	{
+		if (num > 1.0)
+		{
+			return 1.0;
+		}
+		if (num < -1.0)
+		{
+			return -1.0;
+		}
+		return num;
+	}
 };
 
 START_ROBOT_CLASS(RobotDemo);

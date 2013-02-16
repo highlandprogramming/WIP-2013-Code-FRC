@@ -1,3 +1,24 @@
+		/* THIS FILE CONTAINS REMOVED LINES FROM MyRobot.cpp*/
+		
+		
+		
+		//#include "SmartDashboard/SendableChooser.h"
+		//#include "SmartDashboard/Sendable.h"
+		//#include "SmartDashboard/NamedSendable.h"
+		//#include "Target.h"
+		//#include "BinaryImage.h"
+		//#include "VisionAPI.h"
+		// #@$%#@$^%^@$%^!#$%#$^@$%&&$%$^!$#%#@$% http://www.chiefdelphi.com/forums/showthread.php?t=101624 is the forum page
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 			if(stick2->GetRawButton(3) && blnFire == false)
 			{
 				//myShooter1.Set(-1);

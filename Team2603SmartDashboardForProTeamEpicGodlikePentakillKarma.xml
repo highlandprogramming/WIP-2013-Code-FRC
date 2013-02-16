@@ -1,7 +1,7 @@
 <xml version="1.0">
 <dashboard>
-	<widget field="Button 7" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
-		<location x="348" y="367"/>
+	<widget field="Low Hang" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
+		<location x="0" y="130"/>
 	</widget>
 	<widget field="fire_pause" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
 		<location x="824" y="330"/>
@@ -12,28 +12,6 @@
 	<widget field="fire_wait" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
 		<location x="830" y="278"/>
 		<height>21</height>
-	</widget>
-	<widget field="A" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
-		<location x="0" y="214"/>
-	</widget>
-	<widget field="W" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
-		<location x="0" y="193"/>
-	</widget>
-	<widget field="P" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
-		<location x="0" y="172"/>
-	</widget>
-	<widget field="Fire Amount" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
-		<location x="0" y="151"/>
-	</widget>
-	<widget field="Fire Wait" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
-		<location x="0" y="130"/>
-	</widget>
-	<widget field="Button 6" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
-		<location x="349" y="332"/>
-		<height>26</height>
-	</widget>
-	<widget field="Button 5" type="Number" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
-		<location x="345" y="304"/>
 	</widget>
 	<widget field="Shooter Piston" type="String" class="edu.wpi.first.smartdashboard.gui.elements.TextBox">
 		<location x="25" y="109"/>
