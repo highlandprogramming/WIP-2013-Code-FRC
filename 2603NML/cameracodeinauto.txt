@@ -1,0 +1,176 @@
+		while (IsAutonomous() && IsEnabled())
+		{
+		          /**
+		             * Do the image capture with the camera and apply the algorithm described above. This
+		             * sample will either get images from the camera or from an image file stored in the top
+		             * level directory in the flash memory on the cRIO. The file name in this case is "testImage.jpg"
+		             */
+			//SmartDashboard::PutNumber("Test", 1);
+			//if(0 == 0)
+			//{
+			
+			compressor->Enabled();
+			compressor->Start();
+			
+			myRobot.SetSafetyEnabled(true);
+			
+			
+			GetWatchdog().SetEnabled(true);
+			GetWatchdog().SetExpiration(1);
+			GetWatchdog().Feed();
+			
+			myShooter1.Set(-1);
+			myShooter2.Set(-1);
+			GetWatchdog().Feed();
+		
+			
+			GetWatchdog().Feed();
+			
+			// Wait before firing.
+			for(int x = 0; x< ((intPause*2)+1);x++)
+			{
+				GetWatchdog().Feed();
+				Wait(0.5);
+			}
+
+			
+			// Fire a number of frisbees as set in the dashboard.
+			for(int count = 0; count < (FireDash+1);count++)
+			{
+				GetWatchdog().Feed();
+				s[2]->Set(true);
+				
+				// Delay between firing each frisbees.
+				for(int wait = 0; wait<(WaitDash);wait++)
+				{
+					GetWatchdog().Feed();
+					Wait(0.5);
+				}
+				s[2]->Set(false);
+				GetWatchdog().Feed();
+				for(int secondwait = 0;secondwait<3;secondwait++)
+				{
+					GetWatchdog().Feed();
+					Wait(0.5);
+				}
+			}
+			
+			
+			myShooter1.Set(0);
+			myShooter2.Set(0);
+			GetWatchdog().Feed();
+			
+			//SmartDashboard::PutNumber("Test", 2);
+			AxisCamera &camera = AxisCamera::GetInstance("10.26.3.11");
+			camera.WriteResolution(AxisCamera::kResolution_320x240);
+			camera.WriteCompression(20);
+			camera.WriteBrightness(50);
+			
+
+			//SmartDashboard::PutNumber("Test", 3);
+			
+			ColorImage *image;
+			//image = new RGBImage("/HybridLine_DoubleGreenBK3.jpg");		// get the sample image from the cRIO flash
+			image = camera.GetImage();
+					//camera.GetImage(image);				//To get the images from the camera comment the line above and uncomment this one
+			Wait(.1);
+			
+			//SmartDashboard::PutNumber("Test", 4);
+			BinaryImage *thresholdImage = image->ThresholdHSV(threshold);	// get just the green target pixels
+			//		thresholdImage->Write("/threshold.bmp");
+
+			//SmartDashboard::PutNumber("Test", 5);
+			BinaryImage *convexHullImage = thresholdImage->ConvexHull(false);  // fill in partial and full rectangles
+		//			convexHullImage->Write("ConvexHull.bmp");
+
+			//SmartDashboard::PutNumber("Test", 6);
+			BinaryImage *filteredImage = convexHullImage->ParticleFilter(criteria, 1);	//Remove small particles
+			//		filteredImage->Write("/Filtered.bmp");
+
+			//SmartDashboard::PutNumber("Test", 7);
+			vector<ParticleAnalysisReport> *reports = filteredImage->GetOrderedParticleAnalysisReports();  //get a particle analysis report for each particle
+
+			//SmartDashboard::PutNumber("Test", 8);
+			int size = reports->size();
+			scores = new Scores[size];
+					
+
+			//SmartDashboard::PutNumber("Test", 9);
+					//Iterate through each particle, scoring it and determining whether it is a target or not
+			for (unsigned i = 0; i < reports->size(); i++)
+			{
+
+				//SmartDashboard::PutNumber("Test", 10);
+				ParticleAnalysisReport *report = &(reports->at(i));
+						
+				scores[i].rectangularity = scoreRectangularity(report);
+				scores[i].aspectRatioOuter = scoreAspectRatio(filteredImage, report, true);
+				scores[i].aspectRatioInner = scoreAspectRatio(filteredImage, report, false);			
+				scores[i].xEdge = scoreXEdge(thresholdImage, report);
+				scores[i].yEdge = scoreYEdge(thresholdImage, report);
+				
+						
+				if(scoreCompare(scores[i], false))
+				{
+					//We hit this!! Note to self: changethe below printf statement
+					//To use SmartDashboard::PutString so wecan seevalues.
+					//printf("particle: %d  is a High Goal  centerX: %f  centerY: %f \n", i, report->center_mass_x_normalized, report->center_mass_y_normalized);
+					//string particle = ("particle: %d  is a High Goal  centerX: %f  centerY: %f \n", i, report->center_mass_x_normalized, report->center_mass_y_normalized);
+					
+					SmartDashboard::PutNumber("CenterX", report->center_mass_x);
+					SmartDashboard::PutNumber("CenterY", report->center_mass_y);
+					SmartDashboard::PutNumber("Area", report->particleArea);
+					SmartDashboard::PutNumber("Distance",computeDistance(thresholdImage,report, false));
+					SmartDashboard::PutNumber("size", reports->size());
+					SmartDashboard::PutNumber("height", report->boundingRect.height);
+					SmartDashboard::PutNumber("Quality", report->particleQuality);
+					//SmartDashboard::PutNumber("Test",computeDistance(thresholdImage, report, false));
+					//SmartDashboard::PutNumber("Distance",computeDistance(thresholdImage,report, false));
+					SmartDashboard::PutString("high goal detected", "asdf");
+				} 
+				
+				else if (scoreCompare(scores[i], true))
+				{
+					printf("particle: %d  is a Middle Goal  centerX: %f  centerY: %f \n", i, report->center_mass_x_normalized, report->center_mass_y_normalized);
+					SmartDashboard::PutNumber("Test", computeDistance(thresholdImage, report, true));
+					SmartDashboard::PutNumber("CenterX", report->center_mass_x);
+					SmartDashboard::PutNumber("CenterY", report->center_mass_y);
+					SmartDashboard::PutNumber("height", report->boundingRect.height);
+					SmartDashboard::PutNumber("Distance",computeDistance(thresholdImage,report, false));
+					SmartDashboard::PutString("middle goal detected", "adsf");
+				
+				}
+				
+				else
+				{
+					printf("particle: %d  is not a goal  centerX: %f  centerY: %f \n", i, report->center_mass_x_normalized, report->center_mass_y_normalized);
+					SmartDashboard::PutNumber("CenterX", report->center_mass_x);
+					SmartDashboard::PutNumber("CenterY", report->center_mass_y);
+					SmartDashboard::PutNumber("height", report->boundingRect.height);
+					SmartDashboard::PutNumber("Distance",computeDistance(thresholdImage,report, false));
+					SmartDashboard::PutString("we areinelse", "else");
+										
+				}
+				if(report->center_mass_x < 85.00)
+				{								
+					SmartDashboard::PutString("Pausing", "paused");
+					//image->Write("C:\\testimg.bmp");
+					//Wait(10);
+				}
+				printf("rect: %f  ARinner: %f \n", scores[i].rectangularity, scores[i].aspectRatioInner);
+				printf("ARouter: %f  xEdge: %f  yEdge: %f  \n", scores[i].aspectRatioOuter, scores[i].xEdge, scores[i].yEdge);	
+			}
+			printf("\n");
+					
+					// be sure to delete images after using them
+			delete filteredImage;
+			delete convexHullImage;
+			delete thresholdImage;
+			delete image;
+					
+					//delete allocated reports and Scores objects also
+			delete scores;
+			delete reports;
+				//}
+			//x++;
+		}

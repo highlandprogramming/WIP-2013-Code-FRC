@@ -15,6 +15,7 @@
 //#define VIEW_ANGLE 48		//Axis 206 camera
 #define VIEW_ANGLE 43.5  //Axis M1011 camera
 #define PI 3.141592653
+// LONGER PI FTW #define PI 3.1415926535897932384626433832795
 
 //Score limits used for target identification
 #define RECTANGULARITY_LIMIT 60
@@ -68,7 +69,16 @@ class RobotDemo : public SimpleRobot
 	Scores *scores;
 //	char particle[];
 
+	int intAutoCtrl;
+	int intDelay;
+	int intCount;
+	int intSecondWait;
 	
+	Timer timerLowHang;
+	Timer timerFire;
+	Timer timerShift;
+	Timer timerDriveCtrl;
+	Timer timerShooter;
 	
 public:
 	RobotDemo(void):
@@ -117,35 +127,46 @@ public:
 		
 	}
 	
+	void Disabled(void)
+	{
+		
+		intAutoCtrl = 0;
+		intDelay = 0;
+		intCount = 0;
+		intSecondWait = 0;
+		
+	}
+	
 	void RobotInit(void)
 	{
-		DriverStationLCD *dsLCD = DriverStationLCD::GetInstance();
-		dsLCD->Clear();
-		dsLCD->UpdateLCD();
+		//DriverStationLCD *dsLCD = DriverStationLCD::GetInstance();
+		//dsLCD->Clear();
+		//dsLCD->UpdateLCD();
 		//blnShift = true;
-		}
+		compressor->Enabled();
+	}
 
 	void Autonomous(void)
 	{
-		//s[0]->Set(true);
-		//s[1]->Set(true);
+		s[0]->Set(true);
+		s[1]->Set(true);
 		SmartDashboard::PutString("Gear","High");
-		//compressor->Start();
-		GetWatchdog().SetEnabled(false);
-		//GetWatchdog().SetExpiration(10);
-		//GetWatchdog().Feed();
-		myRobot.SetSafetyEnabled(false);
-		/*myRobot.Drive(0.5, 0.0); 	
-		Wait(2.0); 				
-		myRobot.Drive(0.0, 0.0); 	
-		*/
 		
-		//int x = 0;
+		//compressor->Enabled();
+		compressor->Start();
+		
+		myRobot.SetSafetyEnabled(true);
+		
+		GetWatchdog().SetEnabled(true);
+		GetWatchdog().SetExpiration(1);
+		GetWatchdog().Feed();
 		
 		int WaitDash = 0;
 		int FireDash = 0;
 		int intPause = 0;
+		GetWatchdog().Feed();
 		
+		// Incase we need to recreate the controls for Autonomous.
 		//SmartDashboard::PutNumber("fire_wait", 3);
 		//SmartDashboard::PutNumber("fire_amount", 3);
 		//SmartDashboard::PutNumber("fire_pause", 5);
@@ -153,9 +174,10 @@ public:
 		WaitDash = static_cast<int>(SmartDashboard::GetNumber("fire_wait"));
 		FireDash = static_cast<int>(SmartDashboard::GetNumber("fire_amount"));
 		intPause = static_cast<int>(SmartDashboard::GetNumber("fire_pause"));
+		GetWatchdog().Feed();
 		
 
-		
+		/* CAMERA THRESHOLD AND DECLARATIONS, UNCOMMENT IF CAMERA READDED TO AUTONOMOUS
 		//Their threshold values suck DDDD, from the NIvision assistant will be below.
 		//Threshold threshold(60, 100, 90, 255, 20, 255);	//HSV threshold criteria, ranges are in that order ie. Hue is 60-100
 		//Threshold threshold(100, 255, 230, 255, 140, 255); //New threshold values
@@ -166,27 +188,10 @@ public:
 		};												//Particle filter criteria, used to filter out small particles
 		// AxisCamera &camera = AxisCamera::GetInstance();	//To use the Axis camera uncomment this line
 				
+		*/
 		while (IsAutonomous() && IsEnabled())
 		{
-		          /**
-		             * Do the image capture with the camera and apply the algorithm described above. This
-		             * sample will either get images from the camera or from an image file stored in the top
-		             * level directory in the flash memory on the cRIO. The file name in this case is "testImage.jpg"
-		             */
-			//SmartDashboard::PutNumber("Test", 1);
-			//if(0 == 0)
-			//{
-			
-			compressor->Enabled();
-			compressor->Start();
-			
-			myRobot.SetSafetyEnabled(true);
-			
-			
-			GetWatchdog().SetEnabled(true);
-			GetWatchdog().SetExpiration(1);
-			GetWatchdog().Feed();
-			
+		
 			myShooter1.Set(-1);
 			myShooter2.Set(-1);
 			GetWatchdog().Feed();
@@ -195,152 +200,44 @@ public:
 			GetWatchdog().Feed();
 			
 			// Wait before firing.
-			for(int x = 0; x< ((intPause*2)+1);x++)
+			for(intAutoCtrl = 0; intAutoCtrl < (1);intAutoCtrl++)
 			{
 				GetWatchdog().Feed();
-				Wait(0.5);
-			}
+				for(intDelay = 0; intDelay< ((intPause*2)+1);intDelay++)
+				{
+					GetWatchdog().Feed();
+					Wait(0.5);
+				}
+				GetWatchdog().Feed();
 
 			
-			// Fire a number of frisbees as set in the dashboard.
-			for(int count = 0; count < (FireDash+1);count++)
-			{
-				GetWatchdog().Feed();
-				s[2]->Set(true);
+				// Fire a number of frisbees as set in the dashboard.
+				for(intCount = 0; intCount < (FireDash+1); intCount++)
+				{
+					GetWatchdog().Feed();
+					s[2]->Set(true);
 				
-				// Delay between firing each frisbees.
-				for(int wait = 0; wait<(WaitDash);wait++)
-				{
+					// Delay between firing each frisbees.
+					for(int wait = 0; wait<((WaitDash)*2);wait++)
+					{
+						GetWatchdog().Feed();
+						Wait(0.5);
+					}
+					s[2]->Set(false);
 					GetWatchdog().Feed();
-					Wait(0.5);
+					for(intSecondWait = 0;intSecondWait < 3;intSecondWait++)
+					{
+						GetWatchdog().Feed();
+						Wait(0.5);
+					}
+					GetWatchdog().Feed();
 				}
-				s[2]->Set(false);
 				GetWatchdog().Feed();
-				for(int secondwait = 0;secondwait<3;secondwait++)
-				{
-					GetWatchdog().Feed();
-					Wait(0.5);
-				}
 			}
-			
 			
 			myShooter1.Set(0);
 			myShooter2.Set(0);
 			GetWatchdog().Feed();
-			
-			//SmartDashboard::PutNumber("Test", 2);
-			AxisCamera &camera = AxisCamera::GetInstance("10.26.3.11");
-			camera.WriteResolution(AxisCamera::kResolution_320x240);
-			camera.WriteCompression(20);
-			camera.WriteBrightness(50);
-			
-
-			//SmartDashboard::PutNumber("Test", 3);
-			
-			ColorImage *image;
-			//image = new RGBImage("/HybridLine_DoubleGreenBK3.jpg");		// get the sample image from the cRIO flash
-			image = camera.GetImage();
-					//camera.GetImage(image);				//To get the images from the camera comment the line above and uncomment this one
-			Wait(.1);
-			
-			//SmartDashboard::PutNumber("Test", 4);
-			BinaryImage *thresholdImage = image->ThresholdHSV(threshold);	// get just the green target pixels
-			//		thresholdImage->Write("/threshold.bmp");
-
-			//SmartDashboard::PutNumber("Test", 5);
-			BinaryImage *convexHullImage = thresholdImage->ConvexHull(false);  // fill in partial and full rectangles
-		//			convexHullImage->Write("ConvexHull.bmp");
-
-			//SmartDashboard::PutNumber("Test", 6);
-			BinaryImage *filteredImage = convexHullImage->ParticleFilter(criteria, 1);	//Remove small particles
-			//		filteredImage->Write("/Filtered.bmp");
-
-			//SmartDashboard::PutNumber("Test", 7);
-			vector<ParticleAnalysisReport> *reports = filteredImage->GetOrderedParticleAnalysisReports();  //get a particle analysis report for each particle
-
-			//SmartDashboard::PutNumber("Test", 8);
-			int size = reports->size();
-			scores = new Scores[size];
-					
-
-			//SmartDashboard::PutNumber("Test", 9);
-					//Iterate through each particle, scoring it and determining whether it is a target or not
-			for (unsigned i = 0; i < reports->size(); i++)
-			{
-
-				//SmartDashboard::PutNumber("Test", 10);
-				ParticleAnalysisReport *report = &(reports->at(i));
-						
-				scores[i].rectangularity = scoreRectangularity(report);
-				scores[i].aspectRatioOuter = scoreAspectRatio(filteredImage, report, true);
-				scores[i].aspectRatioInner = scoreAspectRatio(filteredImage, report, false);			
-				scores[i].xEdge = scoreXEdge(thresholdImage, report);
-				scores[i].yEdge = scoreYEdge(thresholdImage, report);
-				
-						
-				if(scoreCompare(scores[i], false))
-				{
-					//We hit this!! Note to self: changethe below printf statement
-					//To use SmartDashboard::PutString so wecan seevalues.
-					//printf("particle: %d  is a High Goal  centerX: %f  centerY: %f \n", i, report->center_mass_x_normalized, report->center_mass_y_normalized);
-					//string particle = ("particle: %d  is a High Goal  centerX: %f  centerY: %f \n", i, report->center_mass_x_normalized, report->center_mass_y_normalized);
-					
-					SmartDashboard::PutNumber("CenterX", report->center_mass_x);
-					SmartDashboard::PutNumber("CenterY", report->center_mass_y);
-					SmartDashboard::PutNumber("Area", report->particleArea);
-					SmartDashboard::PutNumber("Distance",computeDistance(thresholdImage,report, false));
-					SmartDashboard::PutNumber("size", reports->size());
-					SmartDashboard::PutNumber("height", report->boundingRect.height);
-					SmartDashboard::PutNumber("Quality", report->particleQuality);
-					//SmartDashboard::PutNumber("Test",computeDistance(thresholdImage, report, false));
-					//SmartDashboard::PutNumber("Distance",computeDistance(thresholdImage,report, false));
-					SmartDashboard::PutString("high goal detected", "asdf");
-				} 
-				
-				else if (scoreCompare(scores[i], true))
-				{
-					printf("particle: %d  is a Middle Goal  centerX: %f  centerY: %f \n", i, report->center_mass_x_normalized, report->center_mass_y_normalized);
-					SmartDashboard::PutNumber("Test", computeDistance(thresholdImage, report, true));
-					SmartDashboard::PutNumber("CenterX", report->center_mass_x);
-					SmartDashboard::PutNumber("CenterY", report->center_mass_y);
-					SmartDashboard::PutNumber("height", report->boundingRect.height);
-					SmartDashboard::PutNumber("Distance",computeDistance(thresholdImage,report, false));
-					SmartDashboard::PutString("middle goal detected", "adsf");
-				
-				}
-				
-				else
-				{
-					printf("particle: %d  is not a goal  centerX: %f  centerY: %f \n", i, report->center_mass_x_normalized, report->center_mass_y_normalized);
-					SmartDashboard::PutNumber("CenterX", report->center_mass_x);
-					SmartDashboard::PutNumber("CenterY", report->center_mass_y);
-					SmartDashboard::PutNumber("height", report->boundingRect.height);
-					SmartDashboard::PutNumber("Distance",computeDistance(thresholdImage,report, false));
-					SmartDashboard::PutString("we areinelse", "else");
-										
-				}
-				if(report->center_mass_x < 85.00)
-				{								
-					SmartDashboard::PutString("Pausing", "paused");
-					//image->Write("C:\\testimg.bmp");
-					//Wait(10);
-				}
-				printf("rect: %f  ARinner: %f \n", scores[i].rectangularity, scores[i].aspectRatioInner);
-				printf("ARouter: %f  xEdge: %f  yEdge: %f  \n", scores[i].aspectRatioOuter, scores[i].xEdge, scores[i].yEdge);	
-			}
-			printf("\n");
-					
-					// be sure to delete images after using them
-			delete filteredImage;
-			delete convexHullImage;
-			delete thresholdImage;
-			delete image;
-					
-					//delete allocated reports and Scores objects also
-			delete scores;
-			delete reports;
-				//}
-			//x++;
 		}
 		
 	}
@@ -388,10 +285,26 @@ public:
 		
 		bool blnShooterSpd = false;
 		
+		GetWatchdog().Feed();
+		
 		float fltShoot;
 		float fltSpeed = 1;
+
+		GetWatchdog().Feed();
 		
 		int intFail = 0;
+
+		GetWatchdog().Feed();
+		
+		timerLowHang.Reset();
+		timerFire.Reset();
+		timerShift.Reset();
+		timerDriveCtrl.Reset();
+		
+		timerLowHang.Start();
+		timerFire.Start();
+		timerShift.Start();
+		timerDriveCtrl.Start();
 		
 		GetWatchdog().Feed();
 			
@@ -414,16 +327,55 @@ public:
 			// End Gamepad tankdrive code.bvg
 			*/
 			
-			
+			//SmartDashboard::PutData()
 			
 			// Stick1 arcade drive code.
 			//myRobot.ArcadeDrive(stick1->GetY(),0,true);
-			//LF->Set(stick1->GetY());
-			//LR->Set(stick1->GetY());
-			//RF->Set(stick1->GetY());
-			//RR->Set(stick1->GetY());
+//			LF->Set(Limit(stick1->GetY()*1.00)); //1
+//			LR->Set(Limit(stick1->GetY()*1.00)); //3
+//			RF->Set(Limit(stick1->GetY()*1.00)); //2
+//			RR->Set(Limit(stick1->GetY()*1.00)); //4
 			
-			singleDrive(stick1->GetY(),stick1->GetX(),true);
+//			LF->Set(0.15); //1
+//			LR->Set(0.15); //3
+//			RF->Set(0.15); //2
+//			RR->Set(0.15); //4
+			
+			//custom arcade drive with calibraiton values applied
+			
+			//bool blnDriveCtrl;
+			
+			//Switch between inverted and non-inverted Joystick control.
+			/*if(stick1->GetRawButton(8) && blnDriveCtrl == false)
+			{
+				//timerDriveCtrl.Reset();
+				//timerDriveCtrl.Start();
+				blnDriveCtrl = true;
+				Wait(0.2);
+			}
+			else if(stick1->GetRawButton(8) && blnDriveCtrl == true)
+			{
+				blnDriveCtrl = false;
+				Wait(0.2);
+			}
+			
+			while(blnDriveCtrl == true)
+			{
+				singleDrive((stick1->GetY())*(-1.0),(stick1->GetX())*(-1.0),true);
+				GetWatchdog().Feed();
+				Wait(0.01);
+			}
+			
+			while(blnDriveCtrl == false)
+			{	
+				singleDrive((stick1->GetY()),(stick1->GetX()),true);
+				GetWatchdog().Feed();
+				Wait(0.01);
+			}
+			*/
+			singleDrive((stick1->GetY()),(stick1->GetX()),true);
+			//ArcadeDrive((stick1->GetY())*(-1.0),(stick1->GetX())*(-1.0),true);
+
 			
 			//myRobot.ArcadeDrive(stick1);
 			GetWatchdog().Feed(); // Feed hungary demonic Watchdog.
@@ -449,50 +401,93 @@ public:
 			//SmartDashboard::PutNumber("Demo",3);
 				
 			GetWatchdog().Feed();
-			if(stick1->GetTrigger() && blnShift == false)
+			if(timerShift.Get() > 0.2)
+			{
+				if(stick1->GetRawButton(7) || stick1->GetTrigger())
+				{
+					if(blnShift == false)
+					{
+						GetWatchdog().Feed();
+						s[0]->Set(false);
+						s[1]->Set(true);
+						SmartDashboard::PutString("Gear","Low");
+						blnShift = true;
+						timerShift.Stop();
+						timerShift.Reset();
+						timerShift.Start();
+						GetWatchdog().Feed();
+					}	
+					else if (blnShift == true)
+					{
+						GetWatchdog().Feed();
+						s[0]->Set(true);
+						s[1]->Set(false);
+						SmartDashboard::PutString("Gear","High");
+						blnShift = false;
+						timerShift.Stop();
+						timerShift.Reset();
+						timerShift.Start();
+						GetWatchdog().Feed();
+					}
+				}		
+			}
+			/*
+			if(stick1->GetRawButton(7) && timerShift.Get() > 0.2)
 			{
 				
-				//SafetyTimer.Reset();
-				//SafetyTimer.Start();
 				GetWatchdog().Feed();
 				s[0]->Set(false);
 				s[1]->Set(true);
 				SmartDashboard::PutString("Gear","Low");
-				blnShift = true;
-				Wait(.5);
+				//Wait(0.2);
+				timerShift.Stop();
+				timerShift.Reset();
+				timerShift.Start();
 					
 				GetWatchdog().Feed();
 				
 			}
-			else if(stick1->GetTrigger() && blnShift == true)
+			if(stick1->GetRawButton(6) && timerShift.Get() > 0.2)
 			{
 				
 				GetWatchdog().Feed();
 				s[0]->Set(true);
 				s[1]->Set(false);
 				SmartDashboard::PutString("Gear","High");
-				blnShift = false;
-				Wait(.5);
+				//Wait(0.2);
+				timerShift.Stop();
+				timerShift.Reset();
+				timerShift.Start();
 				GetWatchdog().Feed();
 				
 			}
-			
-			if(stick1->GetRawButton(2) && blnLowHang == false)
+			*/
+			if(stick1->GetRawButton(2) && blnLowHang == false && timerLowHang.Get() > 0.2)
 			{
 				
 				s[3]->Set(true);
 				blnLowHang = true;
 				SmartDashboard::PutString("Low Hang", "Out");
 				GetWatchdog().Feed();
-				
+				//Wait(0.2);
+				timerLowHang.Stop();
+				timerLowHang.Reset();
+				timerLowHang.Start();
+				GetWatchdog().Feed();
 			}
 			
-			else if(stick1->GetRawButton(2) && blnLowHang == true)
+			else if(stick1->GetRawButton(2) && blnLowHang == true && timerLowHang.Get() > 0.2)
 			{
 				
 				s[3]->Set(false);
 				blnLowHang = false;
 				SmartDashboard::PutString("Low Hang", "In");
+				GetWatchdog().Feed();
+				//Wait(0.2);
+
+				timerLowHang.Stop();
+				timerLowHang.Reset();
+				timerLowHang.Start();
 				GetWatchdog().Feed();
 				
 			}
@@ -528,30 +523,36 @@ public:
 				
 			}*/
 			
-			if(stick2->GetTrigger() && intFail == 0)
+			if(stick2->GetTrigger() && intFail == 0 && timerFire.Get() > 0.2)
 			{
 				
 				s[2]->Set(true);
 				SmartDashboard::PutString("Shooter Piston","In");
 				intFail = 1;
 				GetWatchdog().Feed();
-				Wait(0.5);
+				//Wait(0.2);
+				timerFire.Stop();
+				timerFire.Reset();
+				timerFire.Start();
 				GetWatchdog().Feed();
 				
 			}
-			else if(stick2->GetTrigger() && intFail == 1)
+			else if(stick2->GetTrigger() && intFail == 1 && timerFire.Get() > 0.2)
 			{
 				
 				s[2]->Set(false);
 				intFail = 0;
 				SmartDashboard::PutString("Shooter Piston","Out");
 				GetWatchdog().Feed();
-				Wait(0.5);
+				//Wait(0.2);
+				timerFire.Stop();
+				timerFire.Reset();
+				timerFire.Start();
 				GetWatchdog().Feed();
 				
 			}
 			
-			if(stick2->GetRawButton(2) && blnShooterSpd == false)
+			if(stick2->GetRawButton(2) && blnShooterSpd == false && timerShooter.Get() > 0.2)
 			{
 				
 				myShooter1.Set(-fltSpeed);
@@ -560,11 +561,11 @@ public:
 				SmartDashboard::PutNumber("Shooter Speed (%)",(fltSpeed)*(100));
 				blnShooterSpd = true;
 				GetWatchdog().Feed();
-				Wait(0.5);
+				//Wait(0.2);
 				GetWatchdog().Feed();
 				
 			}
-			else if(stick2->GetRawButton(2) && blnShooterSpd == true)
+			else if(stick2->GetRawButton(2) && blnShooterSpd == true && timerShooter.Get() > 0.2)
 			{
 				
 				myShooter1.Set(0);
@@ -573,7 +574,10 @@ public:
 				SmartDashboard::PutNumber("Shooter Speed (%)",0);
 				blnShooterSpd = false;
 				GetWatchdog().Feed();
-				Wait(0.5);
+				//Wait(0.2);
+				timerShooter.Stop();
+				timerShooter.Reset();
+				timerShooter.Start();
 				GetWatchdog().Feed();
 				
 			}
@@ -612,7 +616,7 @@ public:
 		}
 	}
 	
-	/*
+	
 	void Test(void)
 	{
 		compressor->Start();
@@ -623,24 +627,11 @@ public:
 		
 		while(IsTest())
 		{
-
 			GetWatchdog().Feed();
-			if(stick1->GetRawButton(3))
-			{
-				leftFront.Set(-0.1);
-				leftRear.Set(0.1);
-				rightFront.Set(-0.1);
-				rightRear.Set(0.1);
-				GetWatchdog().Feed();
-			}
-			else
-			{
-				myRobot.ArcadeDrive(stick1);
-				GetWatchdog().Feed();
-			}
+			Wait(0.1);
 		}
 	}
-	*/
+	
 	
 	void mtdCameraCode(void)
 	{
@@ -848,6 +839,12 @@ public:
 		// local variables to hold the computed PWM values for the motors
 		float leftMotorOutput;
 		float rightMotorOutput;
+		
+		// offset values
+		float LF_offset = 0.0;
+		float LR_offset = 0.0;
+		float RF_offset = 0.0;
+		float RR_offset = 0.0;
 
 		moveValue = Limit(moveValue);
 		rotateValue = Limit(rotateValue);
@@ -873,6 +870,7 @@ public:
 			}
 		}
 
+		//calculate final motor command, for positive inputs
 		if (moveValue > 0.0)
 		{
 			if (rotateValue > 0.0)
@@ -886,6 +884,7 @@ public:
 				rightMotorOutput = moveValue + rotateValue;
 			}
 		}
+		//calculate final motor command, for negative inputs
 		else
 		{
 			if (rotateValue > 0.0)
@@ -899,22 +898,104 @@ public:
 				rightMotorOutput = - max(-moveValue, -rotateValue);
 			}
 		}
-		MotorOut(leftMotorOutput, rightMotorOutput);
+		
+		// Modify values until voltages at each motor controller
+		// are close enough for a given joystick input
+		//
+		// Can add more regions if needed
+		//
+
+		LF_offset = 0;
+		LR_offset = 0;
+
+		RF_offset = 0;
+		RR_offset = 0;
+		/*
+		if(leftMotorOutput > 0.05 && leftMotorOutput <= .1)
+		{
+			LF_offset = -0.1;
+			LR_offset = -0.1;
+		}
+		else if((leftMotorOutput > .1) && (leftMotorOutput < .2))
+		{
+			LF_offset = -0.05;
+			LR_offset = -0.05;
+		}
+		else if((leftMotorOutput >= .2) && (leftMotorOutput < .3))
+		{
+			LF_offset = -0.04;
+			LR_offset = -0.04;
+		}
+		else if((leftMotorOutput >= .3) && (leftMotorOutput < .4))
+		{
+			LF_offset = -0.03;
+			LR_offset = -0.03;
+		}
+		else if((leftMotorOutput >= .4) && (leftMotorOutput < .5))
+		{
+			LF_offset = -0.02;
+			LR_offset = -0.02;
+		}
+		else if ((leftMotorOutput >= .5) && (leftMotorOutput < .6))
+		{
+			LF_offset = 0.0;
+			LR_offset = 0.0;
+		}
+		//etc
+		
+		//do again for right side
+		if((-(rightMotorOutput)) > 0.1 && (-(rightMotorOutput)) <= 0.19)
+		{
+			RF_offset = 0.35;
+			RR_offset = 0.35;
+		}
+		else if((-(rightMotorOutput)) > 0.19 && (-(rightMotorOutput)) < .2)
+		{
+			RF_offset = 0.21;
+			RR_offset = 0.21;
+		}
+		else if((-(rightMotorOutput) >= .2) && (-(rightMotorOutput) < .3))
+		{
+			RF_offset = 0.12;
+			RR_offset = 0.12;
+		}
+		else if((-(rightMotorOutput) >= .3) && (-(rightMotorOutput) < .4))
+		{
+			RF_offset = 0.06;
+			RR_offset = 0.06;
+		}
+		else if((-(rightMotorOutput) >= .4) && (-(rightMotorOutput) < .5))
+		{
+			RF_offset = 0.01;
+			RR_offset = 0.01;
+		}
+		else if ((-(rightMotorOutput) >= .5) && (-(rightMotorOutput) < .6))
+		{
+			RF_offset = 0.01;
+			RR_offset = 0.01;
+		}
+		*/
+		
+		
+		MotorOut(leftMotorOutput, rightMotorOutput, LR_offset, LF_offset, RR_offset, RF_offset);
 	}
 	
-	void MotorOut(float leftOutput, float rightOutput)
+	void MotorOut(float leftOutput, float rightOutput, float LR_offset, float LF_offset, float RR_offset, float RF_offset)
 	{
 		if (LF != NULL)
 		{
-			LF->Set((Limit(leftOutput))*-1);
-			LR->Set((Limit(leftOutput))*-1);
+			LF->Set((Limit(leftOutput) + LF_offset));
+			LR->Set((Limit(leftOutput) + LR_offset));
 		}
 
 		if (RF != NULL)
 		{
-			RF->Set(Limit(rightOutput));
-			RR->Set(Limit(rightOutput));
+			RF->Set((-1*(Limit(rightOutput)) + RF_offset));
+			RR->Set((-1*(Limit(rightOutput)) + RR_offset));
 		}
+		
+		SmartDashboard::PutNumber("Left Output",(Limit(leftOutput))*(-1.0));
+		SmartDashboard::PutNumber("Right Output",Limit(rightOutput));
 
 		//m_safetyHelper->Feed();
 	}
