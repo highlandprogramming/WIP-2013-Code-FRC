@@ -16,6 +16,7 @@
 #define VIEW_ANGLE 43.5  //Axis M1011 camera
 #define PI 3.141592653
 // LONGER PI FTW #define PI 3.1415926535897932384626433832795
+// LONGERRRRRRRR PI FTW #define PI 
 
 //Score limits used for target identification
 #define RECTANGULARITY_LIMIT 60
@@ -67,6 +68,7 @@ class RobotDemo : public SimpleRobot
 	Solenoid *s[8];
 	PIDOutput *pidOutput;
 	Scores *scores;
+	DigitalInput *LimitSwitch;
 //	char particle[];
 
 	int intAutoCtrl;
@@ -86,7 +88,8 @@ public:
 		//myRobot(1,3,2,4),
 		myRobot(LF,LR,RF,RR),
 		myShooter1(5),
-		myShooter2(6)
+		myShooter2(6)//,
+		//Limit(2)
 	{
 		//Init-----------
 		LF = new Talon(1);
@@ -105,6 +108,7 @@ public:
 		s[5] = new Solenoid(6);
 		s[6] = new Solenoid(7);
 		s[7] = new Solenoid(8);
+		LimitSwitch = new DigitalInput(3);
 		SmartDashboard::init();
 		myRobot.SetExpiration(0.1);
 		
@@ -127,7 +131,7 @@ public:
 		
 	}
 	
-	void Disabled(void)
+	/*void Disabled(void)
 	{
 		
 		intAutoCtrl = 0;
@@ -136,6 +140,7 @@ public:
 		intSecondWait = 0;
 		
 	}
+	*/
 	
 	void RobotInit(void)
 	{
@@ -203,7 +208,7 @@ public:
 			for(intAutoCtrl = 0; intAutoCtrl < (1);intAutoCtrl++)
 			{
 				GetWatchdog().Feed();
-				for(intDelay = 0; intDelay< ((intPause*2)+1);intDelay++)
+				for(intDelay = 0; intDelay< (((intPause)*2)+1);intDelay++)
 				{
 					GetWatchdog().Feed();
 					Wait(0.5);
@@ -212,8 +217,8 @@ public:
 
 			
 				// Fire a number of frisbees as set in the dashboard.
-				for(intCount = 0; intCount < (FireDash+1); intCount++)
-				{
+				//for(intCount = 0; intCount < (FireDash+1); intCount++)
+			//	{
 					GetWatchdog().Feed();
 					s[2]->Set(true);
 				
@@ -238,7 +243,7 @@ public:
 			myShooter1.Set(0);
 			myShooter2.Set(0);
 			GetWatchdog().Feed();
-		}
+		//}
 		
 	}
 
@@ -300,11 +305,13 @@ public:
 		timerFire.Reset();
 		timerShift.Reset();
 		timerDriveCtrl.Reset();
+		timerShooter.Reset();
 		
 		timerLowHang.Start();
 		timerFire.Start();
 		timerShift.Start();
 		timerDriveCtrl.Start();
+		timerShooter.Start();
 		
 		GetWatchdog().Feed();
 			
@@ -322,7 +329,7 @@ public:
 			fltStick1Y = (x360->GetRawAxis(2))*(-100);
 			fltStick1X = (x360->GetRawAxis(4))*(-100);
 
-			SmartDashboard::PutNumber("Left Throttle (%)",fltStick1Y);
+			SmartDashjboard::PutNumber("Left Throttle (%)",fltStick1Y);
 			SmartDashboard::PutNumber("Right Throttle (%)",fltStick1X);
 			// End Gamepad tankdrive code.bvg
 			*/
@@ -384,6 +391,7 @@ public:
 			SmartDashboard::PutNumber("Throttle (%)",stick1->GetY()*(-100));
 			SmartDashboard::PutNumber("Steering (%)",stick1->GetX()*(100));
 
+			SmartDashboard::PutBoolean("Touching Tower?",LimitSwitch->Get());
 			GetWatchdog().Feed();
 			//End Stick1 arcade drive code.
 
@@ -397,9 +405,8 @@ public:
 			SmartDashboard::PutNumber("Shooter Set Speed (%)", (fltSpeed*100));
 			
 			//float fltPressureSwitch = m_pressureSwitch;
-			//float fltRelay = m_relay;
-			//SmartDashboard::PutNumber("Demo",3);
-				
+			//float fltRelay = m_relay;	
+						
 			GetWatchdog().Feed();
 			if(timerShift.Get() > 0.2)
 			{
@@ -460,6 +467,17 @@ public:
 				timerShift.Start();
 				GetWatchdog().Feed();
 				
+			}
+			*/
+			
+			/*
+			if(->Get() == 1)
+			{
+				SmartDashboard::PutBoolean("Touching Tower?",true);
+			}
+			else if(->Get() == 0)
+			{
+				SmartDashboard::PutBoolean("Touching Tower?",false);
 			}
 			*/
 			if(stick1->GetRawButton(2) && blnLowHang == false && timerLowHang.Get() > 0.2)
@@ -523,7 +541,7 @@ public:
 				
 			}*/
 			
-			if(stick2->GetTrigger() && intFail == 0 && timerFire.Get() > 0.2)
+			if(stick2->GetTrigger() && intFail == 0 && timerFire.Get() > 0.8)
 			{
 				
 				s[2]->Set(true);
@@ -537,7 +555,7 @@ public:
 				GetWatchdog().Feed();
 				
 			}
-			else if(stick2->GetTrigger() && intFail == 1 && timerFire.Get() > 0.2)
+			else if(stick2->GetTrigger() && intFail == 1 && timerFire.Get() > 0.8)
 			{
 				
 				s[2]->Set(false);
@@ -552,9 +570,9 @@ public:
 				
 			}
 			
-			if(stick2->GetRawButton(2) && blnShooterSpd == false && timerShooter.Get() > 0.2)
+			if(stick2->GetRawButton(2) && blnShooterSpd == false && timerShooter.Get() > 0.5)
 			{
-				
+				GetWatchdog().Feed();
 				myShooter1.Set(-fltSpeed);
 				myShooter2.Set(-fltSpeed);
 				SmartDashboard::PutString("Shooter","On");
@@ -562,12 +580,14 @@ public:
 				blnShooterSpd = true;
 				GetWatchdog().Feed();
 				//Wait(0.2);
+				timerShooter.Stop();
+				timerShooter.Reset();
+				timerShooter.Start();
 				GetWatchdog().Feed();
-				
 			}
-			else if(stick2->GetRawButton(2) && blnShooterSpd == true && timerShooter.Get() > 0.2)
+			else if(stick2->GetRawButton(2) && blnShooterSpd == true && timerShooter.Get() > 0.5)
 			{
-				
+				GetWatchdog().Feed();
 				myShooter1.Set(0);
 				myShooter2.Set(0);
 				SmartDashboard::PutString("Shooter","Off");

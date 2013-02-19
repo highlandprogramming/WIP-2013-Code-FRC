@@ -64,7 +64,7 @@ public:
 	void SetInvertedMotor(MotorType motor, bool isInverted);
 	void SetSensitivity(float sensitivity);
 	void SetMaxOutput(double maxOutput);
-
+u
 	void SetExpiration(float timeout);
 	float GetExpiration();
 	bool IsAlive();
