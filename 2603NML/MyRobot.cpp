@@ -480,11 +480,10 @@ public:
 				SmartDashboard::PutBoolean("Touching Tower?",false);
 			}
 			*/
-			if(stick1->GetRawButton(2) && blnLowHang == false && timerLowHang.Get() > 0.2)
+			if(stick1->GetRawButton(2) && blnLowHang == false && timerLowHang.Get() > 0.5)
 			{
 				
 				s[3]->Set(true);
-				blnLowHang = true;
 				SmartDashboard::PutString("Low Hang", "Out");
 				GetWatchdog().Feed();
 				//Wait(0.2);
@@ -492,13 +491,13 @@ public:
 				timerLowHang.Reset();
 				timerLowHang.Start();
 				GetWatchdog().Feed();
+				blnLowHang = true;
 			}
 			
-			else if(stick1->GetRawButton(2) && blnLowHang == true && timerLowHang.Get() > 0.2)
+			else if(stick1->GetRawButton(2) && blnLowHang == true && timerLowHang.Get() > 0.5)
 			{
 				
 				s[3]->Set(false);
-				blnLowHang = false;
 				SmartDashboard::PutString("Low Hang", "In");
 				GetWatchdog().Feed();
 				//Wait(0.2);
@@ -507,6 +506,7 @@ public:
 				timerLowHang.Reset();
 				timerLowHang.Start();
 				GetWatchdog().Feed();
+				blnLowHang = false;
 				
 			}
 			
