@@ -13,7 +13,7 @@
 //Camera constants used for distance calculation
 #define X_IMAGE_RES 320		//X Image resolution in pixels, should be 160, 320 or 640
 //#define VIEW_ANGLE 48		//Axis 206 camera
-#define VIEW_ANGLE 43.5  //Axis M1011 camera
+#define VIEW_ANGLE 43.5  	//Axis M1011 camera
 #define PI 3.141592653
 // LONGER PI FTW #define PI 3.1415926535897932384626433832795
 // LONGERRRRRRRR PI FTW #define PI 
@@ -75,6 +75,9 @@ class RobotDemo : public SimpleRobot
 	int intDelay;
 	int intCount;
 	int intSecondWait;
+	bool blnReverse;
+	float fltStick1X;
+	float fltStick1Y;
 	
 	Timer timerLowHang;
 	Timer timerFire;
@@ -380,7 +383,29 @@ public:
 				Wait(0.01);
 			}
 			*/
-			singleDrive((stick1->GetY()),(stick1->GetX()),true);
+			
+			if(stick1->GetRawButton(9) && blnReverse == false)
+			{
+				blnReverse = true;
+			}
+			else if(stick1->GetRawButton(9) && blnReverse == true)
+			{
+				blnReverse = false;
+			}
+			
+			if(blnReverse == false)
+			{
+				fltStick1Y = stick1->GetY();
+				fltStick1X = stick1->GetX();
+				SmartDashboard::PutBoolean("Reverse",false);
+			}
+			else if(blnReverse == true)
+			{
+				fltStick1Y = ((stick1->GetY())*(-1));
+				fltStick1X = ((stick1->GetX())*(1));
+				SmartDashboard::PutBoolean("Reverse",true);
+			}
+			singleDrive((fltStick1Y),(fltStick1X),true);
 			//ArcadeDrive((stick1->GetY())*(-1.0),(stick1->GetX())*(-1.0),true);
 
 			
@@ -438,77 +463,68 @@ public:
 					}
 				}		
 			}
-			/*
-			if(stick1->GetRawButton(7) && timerShift.Get() > 0.2)
-			{
-				
-				GetWatchdog().Feed();
-				s[0]->Set(false);
-				s[1]->Set(true);
-				SmartDashboard::PutString("Gear","Low");
-				//Wait(0.2);
-				timerShift.Stop();
-				timerShift.Reset();
-				timerShift.Start();
-					
-				GetWatchdog().Feed();
-				
-			}
-			if(stick1->GetRawButton(6) && timerShift.Get() > 0.2)
-			{
-				
-				GetWatchdog().Feed();
-				s[0]->Set(true);
-				s[1]->Set(false);
-				SmartDashboard::PutString("Gear","High");
-				//Wait(0.2);
-				timerShift.Stop();
-				timerShift.Reset();
-				timerShift.Start();
-				GetWatchdog().Feed();
-				
-			}
-			*/
 			
-			/*
-			if(->Get() == 1)
-			{
-				SmartDashboard::PutBoolean("Touching Tower?",true);
-			}
-			else if(->Get() == 0)
-			{
-				SmartDashboard::PutBoolean("Touching Tower?",false);
-			}
-			*/
+			bool blnLowTime;
+
 			if(stick1->GetRawButton(2) && blnLowHang == false && timerLowHang.Get() > 0.5)
+			{
+				blnLowTime = true;
+				blnLowHang = true;
+				timerLowHang.Stop();
+				timerLowHang.Reset();
+				timerLowHang.Start();
+				GetWatchdog().Feed();
+			}
+			else if(stick1->GetRawButton(2) && blnLowHang == true && timerLowHang.Get() > 0.5)
+			{
+				blnLowTime = false;
+				blnLowHang = false;
+				timerLowHang.Stop();
+				timerLowHang.Reset();
+				timerLowHang.Start();
+				GetWatchdog().Feed();
+			}
+			if(blnLowTime == true)
+			{
+				s[3]->Set(true);
+				GetWatchdog().Feed();
+			}
+			else if (blnLowTime == false)
+			{
+				s[3]->Set(false);
+				GetWatchdog().Feed();
+			}
+			/*if(stick1->GetRawButton(2) && blnLowHang == false && timerLowHang.Get() > 0.5)
+			{
+				blnLowHang = true;
+				timerLowHang.Stop();
+				timerLowHang.Reset();
+				timerLowHang.Start();
+			}
+			else if(stick1->GetRawButton(2) && blnLowHang == true && timerLowHang.Get() > 0.5)
+			{
+				blnLowHang  = false;
+				timerLowHang.Stop();
+				timerLowHang.Reset();
+				timerLowHang.Start();
+			}
+			if(blnLowHang == false)
 			{
 				
 				s[3]->Set(true);
 				SmartDashboard::PutString("Low Hang", "Out");
 				GetWatchdog().Feed();
-				//Wait(0.2);
-				timerLowHang.Stop();
-				timerLowHang.Reset();
-				timerLowHang.Start();
 				GetWatchdog().Feed();
-				blnLowHang = true;
 			}
 			
-			else if(stick1->GetRawButton(2) && blnLowHang == true && timerLowHang.Get() > 0.5)
+			else if(blnLowHang == true)
 			{
 				
 				s[3]->Set(false);
 				SmartDashboard::PutString("Low Hang", "In");
 				GetWatchdog().Feed();
-				//Wait(0.2);
-
-				timerLowHang.Stop();
-				timerLowHang.Reset();
-				timerLowHang.Start();
-				GetWatchdog().Feed();
-				blnLowHang = false;
 				
-			}
+			}*/
 			
 			if(stick1->GetRawButton(3))
 			{
@@ -607,27 +623,27 @@ public:
 				fltSpeed = 0.6;
 				GetWatchdog().Feed();
 			}
-			if(stick2->GetRawButton(9))
+			else if(stick2->GetRawButton(9))
 			{
 				fltSpeed = 0.7;
 				GetWatchdog().Feed();
 			}
-			if(stick2->GetRawButton(8))
+			else if(stick2->GetRawButton(8))
 			{
 				fltSpeed = 0.8;
 				GetWatchdog().Feed();
 			}
-			if(stick2->GetRawButton(7))
+			else if(stick2->GetRawButton(7))
 			{
 				fltSpeed = 0.9;
 				GetWatchdog().Feed();
 			}
-			if(stick2->GetRawButton(6))
+			else if(stick2->GetRawButton(6))
 			{
 				fltSpeed = 1;
 				GetWatchdog().Feed();
 			}
-			if(stick2->GetRawButton(11))
+			else if(stick2->GetRawButton(11))
 			{
 				fltSpeed = fltShoot;
 				GetWatchdog().Feed();
