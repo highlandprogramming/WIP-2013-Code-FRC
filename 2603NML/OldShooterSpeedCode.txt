@@ -18,6 +18,57 @@
 		
 		
 		
+					//Switch between inverted and non-inverted Joystick control.
+			/*if(stick1->GetRawButton(8) && blnDriveCtrl == false)
+			{
+				//timerDriveCtrl.Reset();
+				//timerDriveCtrl.Start();
+				blnDriveCtrl = true;
+				Wait(0.2);
+			}
+			else if(stick1->GetRawButton(8) && blnDriveCtrl == true)
+			{
+				blnDriveCtrl = false;
+				Wait(0.2);
+			}
+			
+			while(blnDriveCtrl == true)
+			{
+				singleDrive((stick1->GetY())*(-1.0),(stick1->GetX())*(-1.0),true);
+				GetWatchdog().Feed();
+				Wait(0.01);
+			}
+			
+			while(blnDriveCtrl == false)
+			{	
+				singleDrive((stick1->GetY()),(stick1->GetX()),true);
+				GetWatchdog().Feed();
+				Wait(0.01);
+			}
+			*/
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		
 			if(stick2->GetRawButton(3) && blnFire == false)
 			{

@@ -63,27 +63,25 @@ class RobotDemo : public SimpleRobot
 	Victor myShooter2;
 	Joystick *stick1;
 	Joystick *stick2;
-	Joystick *x360;
 	Compressor *compressor;
 	Solenoid *s[8];
 	PIDOutput *pidOutput;
 	Scores *scores;
 	DigitalInput *LimitSwitch;
-//	char particle[];
-
 	int intAutoCtrl;
 	int intDelay;
 	int intCount;
 	int intSecondWait;
 	bool blnReverse;
+	bool blnLowTime;
 	float fltStick1X;
 	float fltStick1Y;
-	
 	Timer timerLowHang;
 	Timer timerFire;
 	Timer timerShift;
 	Timer timerDriveCtrl;
 	Timer timerShooter;
+	Timer timerCamera;
 	
 public:
 	RobotDemo(void):
@@ -101,7 +99,6 @@ public:
 		RR = new Talon(4);
 		stick1 = new Joystick(1);
 		stick2 = new Joystick(2);
-		x360 = new Joystick(3);
 		compressor = new Compressor(1,1);
 		s[0] = new Solenoid(1);
 		s[1] = new Solenoid(2);
@@ -131,7 +128,6 @@ public:
 		delete compressor;
 		delete stick2;
 		delete stick1;
-		
 	}
 	
 	/*void Disabled(void)
@@ -145,29 +141,26 @@ public:
 	}
 	*/
 	
-	void RobotInit(void)
+	/*void RobotInit(void)
 	{
-		//DriverStationLCD *dsLCD = DriverStationLCD::GetInstance();
-		//dsLCD->Clear();
-		//dsLCD->UpdateLCD();
-		//blnShift = true;
+		DriverStationLCD *dsLCD = DriverStationLCD::GetInstance();
+		dsLCD->Clear();
+		dsLCD->UpdateLCD();
+		blnShift = true;
 		compressor->Enabled();
-	}
+	}*/
 
 	void Autonomous(void)
 	{
-		s[0]->Set(true);
-		s[1]->Set(true);
-		SmartDashboard::PutString("Gear","High");
-		
-		//compressor->Enabled();
-		compressor->Start();
-		
-		myRobot.SetSafetyEnabled(true);
-		
 		GetWatchdog().SetEnabled(true);
 		GetWatchdog().SetExpiration(1);
 		GetWatchdog().Feed();
+		s[0]->Set(true);
+		s[1]->Set(true);
+		SmartDashboard::PutString("Gear","High");
+		compressor->Start();
+		myRobot.SetSafetyEnabled(true);
+		
 		
 		int WaitDash = 0;
 		int FireDash = 0;
@@ -252,56 +245,25 @@ public:
 
 	void OperatorControl(void)
 	{
-		// Teleoperated Code.
-		/*double WaitDash = 0.0;
-		double FireDash = 0.0;
-		double intPause = 0.0;
-		
-		SmartDashboard::PutNumber("P", 3.0);
-		SmartDashboard::PutNumber("W", 0.0);
-		SmartDashboard::PutNumber("A", 0.0);
-		
-		WaitDash = SmartDashboard::GetNumber("P");
-		FireDash = SmartDashboard::GetNumber("W");
-		intPause = SmartDashboard::GetNumber("A");
-		
-		SmartDashboard::PutNumber("P", WaitDash);
-		SmartDashboard::PutNumber("W", FireDash);
-		SmartDashboard::PutNumber("A", WaitDash);
-		*/	
-		// Enable and start the compressor.
-		//compressor->Enabled();
-		compressor->Start();
-			
-		// Enable drive motor safety timeout.
-		myRobot.SetSafetyEnabled(true);
-			
-		// Enable watchdog and initial feed.
 		GetWatchdog().SetEnabled(true);
 		GetWatchdog().SetExpiration(1);
 		GetWatchdog().Feed();
-			
+		// Enable and start the compressor.
+		compressor->Start();
+		// Enable drive motor safety timeout.
+		myRobot.SetSafetyEnabled(true);
 		// Set robot in low gear by default. Not active.
-		//s[0]->Set(false);
 		GetWatchdog().Feed();
-		
 		//bool blnShoot = false;
 		bool blnLowHang = false;
 		bool blnShift = false;
-
 		GetWatchdog().Feed();
-		
 		bool blnShooterSpd = false;
-		
 		GetWatchdog().Feed();
-		
-		float fltShoot;
+		double dblShoot;
 		float fltSpeed = 1;
-
 		GetWatchdog().Feed();
-		
 		int intFail = 0;
-
 		GetWatchdog().Feed();
 		
 		timerLowHang.Reset();
@@ -309,129 +271,54 @@ public:
 		timerShift.Reset();
 		timerDriveCtrl.Reset();
 		timerShooter.Reset();
-		
+		timerCamera.Reset();
+		GetWatchdog().Feed();
 		timerLowHang.Start();
 		timerFire.Start();
 		timerShift.Start();
 		timerDriveCtrl.Start();
 		timerShooter.Start();
-		
+		timerCamera.Start();
 		GetWatchdog().Feed();
-			
-		//sd->sendIOPortData();
-
-		// Local variables.
-		//float fltStick1X, fltStick1Y;
 		
 		while (IsOperatorControl())
 		{
-			/*
-			// Gamepad tankdrive code.
-			myRobot.TankDrive(x360->GetRawAxis(2),x360->GetRawAxis(4));
-
-			fltStick1Y = (x360->GetRawAxis(2))*(-100);
-			fltStick1X = (x360->GetRawAxis(4))*(-100);
-
-			SmartDashjboard::PutNumber("Left Throttle (%)",fltStick1Y);
-			SmartDashboard::PutNumber("Right Throttle (%)",fltStick1X);
-			// End Gamepad tankdrive code.bvg
-			*/
-			
-			//SmartDashboard::PutData()
-			
-			// Stick1 arcade drive code.
-			//myRobot.ArcadeDrive(stick1->GetY(),0,true);
-//			LF->Set(Limit(stick1->GetY()*1.00)); //1
-//			LR->Set(Limit(stick1->GetY()*1.00)); //3
-//			RF->Set(Limit(stick1->GetY()*1.00)); //2
-//			RR->Set(Limit(stick1->GetY()*1.00)); //4
-			
-//			LF->Set(0.15); //1
-//			LR->Set(0.15); //3
-//			RF->Set(0.15); //2
-//			RR->Set(0.15); //4
-			
-			//custom arcade drive with calibraiton values applied
-			
-			//bool blnDriveCtrl;
-			
-			//Switch between inverted and non-inverted Joystick control.
-			/*if(stick1->GetRawButton(8) && blnDriveCtrl == false)
-			{
-				//timerDriveCtrl.Reset();
-				//timerDriveCtrl.Start();
-				blnDriveCtrl = true;
-				Wait(0.2);
-			}
-			else if(stick1->GetRawButton(8) && blnDriveCtrl == true)
-			{
-				blnDriveCtrl = false;
-				Wait(0.2);
-			}
-			
-			while(blnDriveCtrl == true)
-			{
-				singleDrive((stick1->GetY())*(-1.0),(stick1->GetX())*(-1.0),true);
-				GetWatchdog().Feed();
-				Wait(0.01);
-			}
-			
-			while(blnDriveCtrl == false)
-			{	
-				singleDrive((stick1->GetY()),(stick1->GetX()),true);
-				GetWatchdog().Feed();
-				Wait(0.01);
-			}
-			*/
-			
 			if(stick1->GetRawButton(9) && blnReverse == false)
 			{
 				blnReverse = true;
+				GetWatchdog().Feed();
 			}
 			else if(stick1->GetRawButton(9) && blnReverse == true)
 			{
 				blnReverse = false;
+				GetWatchdog().Feed();
 			}
-			
 			if(blnReverse == false)
 			{
 				fltStick1Y = stick1->GetY();
 				fltStick1X = stick1->GetX();
-				SmartDashboard::PutBoolean("Reverse",false);
+//				SmartDashboard::PutBoolean("Reverse",false);
+				GetWatchdog().Feed();
 			}
 			else if(blnReverse == true)
 			{
 				fltStick1Y = ((stick1->GetY())*(-1));
 				fltStick1X = ((stick1->GetX())*(1));
-				SmartDashboard::PutBoolean("Reverse",true);
+//				SmartDashboard::PutBoolean("Reverse",true);
+				GetWatchdog().Feed();
 			}
 			singleDrive((fltStick1Y),(fltStick1X),true);
-			//ArcadeDrive((stick1->GetY())*(-1.0),(stick1->GetX())*(-1.0),true);
-
-			
-			//myRobot.ArcadeDrive(stick1);
-			GetWatchdog().Feed(); // Feed hungary demonic Watchdog.
-
-				
+			GetWatchdog().Feed();
 			SmartDashboard::PutNumber("Throttle (%)",stick1->GetY()*(-100));
 			SmartDashboard::PutNumber("Steering (%)",stick1->GetX()*(100));
-
 			SmartDashboard::PutBoolean("Touching Tower?",LimitSwitch->Get());
 			GetWatchdog().Feed();
 			//End Stick1 arcade drive code.
-
+			dblShoot = (((-(stick2->GetRawAxis(3)))+1)/2);
 			GetWatchdog().Feed();
-			
-			fltShoot = (((-(stick2->GetRawAxis(3)))+1)/2);
-
-			GetWatchdog().Feed();
-			
-			SmartDashboard::PutNumber("Shooter Power (%)", fltShoot);
+			SmartDashboard::PutNumber("Shooter Power (%)", dblShoot);
 			SmartDashboard::PutNumber("Shooter Set Speed (%)", (fltSpeed*100));
-			
 			//float fltPressureSwitch = m_pressureSwitch;
-			//float fltRelay = m_relay;	
-						
 			GetWatchdog().Feed();
 			if(timerShift.Get() > 0.2)
 			{
@@ -463,9 +350,6 @@ public:
 					}
 				}		
 			}
-			
-			bool blnLowTime;
-
 			if(stick1->GetRawButton(2) && blnLowHang == false && timerLowHang.Get() > 0.5)
 			{
 				blnLowTime = true;
@@ -494,38 +378,6 @@ public:
 				s[3]->Set(false);
 				GetWatchdog().Feed();
 			}
-			/*if(stick1->GetRawButton(2) && blnLowHang == false && timerLowHang.Get() > 0.5)
-			{
-				blnLowHang = true;
-				timerLowHang.Stop();
-				timerLowHang.Reset();
-				timerLowHang.Start();
-			}
-			else if(stick1->GetRawButton(2) && blnLowHang == true && timerLowHang.Get() > 0.5)
-			{
-				blnLowHang  = false;
-				timerLowHang.Stop();
-				timerLowHang.Reset();
-				timerLowHang.Start();
-			}
-			if(blnLowHang == false)
-			{
-				
-				s[3]->Set(true);
-				SmartDashboard::PutString("Low Hang", "Out");
-				GetWatchdog().Feed();
-				GetWatchdog().Feed();
-			}
-			
-			else if(blnLowHang == true)
-			{
-				
-				s[3]->Set(false);
-				SmartDashboard::PutString("Low Hang", "In");
-				GetWatchdog().Feed();
-				
-			}*/
-			
 			if(stick1->GetRawButton(3))
 			{
 				
@@ -533,59 +385,28 @@ public:
 				GetWatchdog().Feed();
 				
 			}
-			
-			/*if(stick2->GetTrigger() && blnShoot == false)
-			{
-				
-				s[2]->Set(true);
-				SmartDashboard::PutString("Shooter Piston","In");
-				blnShoot = true;
-				GetWatchdog().Feed();
-				Wait(0.5);
-				GetWatchdog().Feed();
-				
-			}
-			else if(stick2->GetTrigger() && blnShoot == true)
-			{
-				
-				s[2]->Set(false);
-				blnShoot = false;
-				SmartDashboard::PutString("Shooter Piston","Out");
-				GetWatchdog().Feed();
-				Wait(0.5);
-				GetWatchdog().Feed();
-				
-			}*/
-			
 			if(stick2->GetTrigger() && intFail == 0 && timerFire.Get() > 0.8)
 			{
-				
 				s[2]->Set(true);
 				SmartDashboard::PutString("Shooter Piston","In");
 				intFail = 1;
 				GetWatchdog().Feed();
-				//Wait(0.2);
 				timerFire.Stop();
 				timerFire.Reset();
 				timerFire.Start();
 				GetWatchdog().Feed();
-				
 			}
 			else if(stick2->GetTrigger() && intFail == 1 && timerFire.Get() > 0.8)
 			{
-				
 				s[2]->Set(false);
 				intFail = 0;
 				SmartDashboard::PutString("Shooter Piston","Out");
 				GetWatchdog().Feed();
-				//Wait(0.2);
 				timerFire.Stop();
 				timerFire.Reset();
 				timerFire.Start();
 				GetWatchdog().Feed();
-				
 			}
-			
 			if(stick2->GetRawButton(2) && blnShooterSpd == false && timerShooter.Get() > 0.5)
 			{
 				GetWatchdog().Feed();
@@ -595,7 +416,6 @@ public:
 				SmartDashboard::PutNumber("Shooter Speed (%)",(fltSpeed)*(100));
 				blnShooterSpd = true;
 				GetWatchdog().Feed();
-				//Wait(0.2);
 				timerShooter.Stop();
 				timerShooter.Reset();
 				timerShooter.Start();
@@ -645,7 +465,7 @@ public:
 			}
 			else if(stick2->GetRawButton(11))
 			{
-				fltSpeed = fltShoot;
+				fltSpeed = dblShoot;
 				GetWatchdog().Feed();
 			}
 			GetWatchdog().Feed();
@@ -670,9 +490,11 @@ public:
 	
 	
 	void mtdCameraCode(void)
-	{
-		Threshold threshold(0, 255, 0, 255, 221, 255);
+	{	
+		timerCamera.Start();
+
 		
+		Threshold threshold(0, 255, 0, 255, 221, 255);
 		ParticleFilterCriteria2 criteria[] = {{IMAQ_MT_AREA, AREA_MINIMUM, 65535, false, false}};		
 	
 		AxisCamera &camera = AxisCamera::GetInstance("10.26.3.11");
@@ -682,12 +504,14 @@ public:
 					
 
 		//SmartDashboard::PutNumber("Test", 3);
-					
+		if(timerCamera.Get() > 0.1)
+		{			
 		ColorImage *image;
 		//image = new RGBImage("/HybridLine_DoubleGreenBK3.jpg");		// get the sample image from the cRIO flash
 		image = camera.GetImage();
 		//camera.GetImage(image);				//To get the images from the camera comment the line above and uncomment this one
-		Wait(.1);
+		//Wait(.1);
+		
 					
 		//SmartDashboard::PutNumber("Test", 4);
 		BinaryImage *thresholdImage = image->ThresholdHSV(threshold);	// get just the green target pixels
@@ -714,14 +538,11 @@ public:
 		{
 			//SmartDashboard::PutNumber("Test", 10);
 			ParticleAnalysisReport *report = &(reports->at(i));
-								
 			scores[i].rectangularity = scoreRectangularity(report);
 			scores[i].aspectRatioOuter = scoreAspectRatio(filteredImage, report, true);
 			scores[i].aspectRatioInner = scoreAspectRatio(filteredImage, report, false);			
 			scores[i].xEdge = scoreXEdge(thresholdImage, report);
 			scores[i].yEdge = scoreYEdge(thresholdImage, report);
-						
-								
 			if(scoreCompare(scores[i], false))
 			{
 				//We hit this!! Note to self: changethe below printf statement
@@ -783,6 +604,8 @@ public:
 		//delete allocated reports and Scores objects also
 		delete scores;
 		delete reports;
+		}
+		timerCamera.Reset();
 	}
 	
 	double computeDistance (BinaryImage *image, ParticleAnalysisReport *report, bool outer) {
