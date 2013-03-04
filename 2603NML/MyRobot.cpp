@@ -83,6 +83,7 @@ class RobotDemo : public SimpleRobot
 	Timer timerShooter;
 	Timer timerDriveCtrl;
 	Timer timerCamera;
+	Timer timerReverse;
 
 
 
@@ -284,6 +285,7 @@ public:
 		timerShooter.Reset();
 		timerDriveCtrl.Reset();
 		timerCamera.Reset();
+		timerReverse.Reset();
 
 		timerLowHang.Start();
 		timerShift.Start();
@@ -291,6 +293,7 @@ public:
 		timerShooter.Start();
 		timerDriveCtrl.Start();
 		timerCamera.Start();
+		timerReverse.Start();
 		
 		GetWatchdog().Feed();
 
@@ -301,28 +304,35 @@ public:
 
 		while (IsOperatorControl())
 		{
-			if(stick1->GetRawButton(9) && blnReverse == false)
+			if(timerReverse.Get() > 0.5)
 			{
-				blnReverse = true;
-				GetWatchdog().Feed();
-			}
-			else if(stick1->GetRawButton(9) && blnReverse == true)
-			{
-				blnReverse = false;
-				GetWatchdog().Feed();
+				if(stick1->GetRawButton(8) && blnReverse == false )
+				{
+					blnReverse = true;
+					GetWatchdog().Feed();
+					timerReverse.Reset();
+					timerReverse.Start();
+				}
+				else if(stick1->GetRawButton(9) && blnReverse == true)
+				{
+					blnReverse = false;
+					GetWatchdog().Feed();
+					timerReverse.Reset();
+					timerReverse.Start();
+				}
 			}
 			if(blnReverse == false)
 			{
 				fltStick1Y = stick1->GetY();
 				fltStick1X = stick1->GetX();
-//				SmartDashboard::PutBoolean("Reverse",false);
+				SmartDashboard::PutBoolean("Reverse",false);
 				GetWatchdog().Feed();
 			}
 			else if(blnReverse == true)
 			{
 				fltStick1Y = ((stick1->GetY())*(-1));
 				fltStick1X = ((stick1->GetX())*(1));
-//				SmartDashboard::PutBoolean("Reverse",true);
+				SmartDashboard::PutBoolean("Reverse",true);
 				GetWatchdog().Feed();
 			}
 			myRobot.ArcadeDrive(fltStick1Y,fltStick1X);
